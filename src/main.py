@@ -5,15 +5,15 @@ Currently supported markdown:
 	headings
 	bold
 	italic
+	underline
+	strikethrough
+	horizontal rule
 	img
 	link
 	blockquote
 	code
 	checkboxes
 	unordered list(WIP) atm only 1 inner list supported
-
-	todo:
-		hr = ---
 """
 
 def fileSize(fname):
@@ -287,6 +287,12 @@ for f in files:
 					w.write(f'<input type="checkbox" {checked}>')
 					lineEnd = "<br>"
 					check = True
+			elif nextC == "-":
+				c = r.read(1)
+				if c == "-":
+					w.write("<hr>")
+				else:
+					print(f"Line: {line}, TotalChar: {i} -> Improperly formatted horizontal rule!")
 			else:
 				print(f"Line: {line}, TotalChar: {i} -> Improperly formatted checklist!")
 		elif char == "~":

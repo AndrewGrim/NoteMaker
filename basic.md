@@ -26,6 +26,10 @@
 
 __underlined__
 
+text
+
+---
+
 `code`
 
 - [ ] unchecked
