@@ -22,7 +22,6 @@ def fileSize(fname):
 	statinfo = os.stat(fname)
 	return statinfo.st_size
 
-
 files = ["basic", "advanced_supported"]#, "advanced"]
 for f in files: 
 	r = open(f"{f}.md", "r")
@@ -47,6 +46,12 @@ for f in files:
 	# cause at the moment if i put a hash anywhere in text it will check if its a heading
 	# even if its a quote or a coment or whatever
 	# TODO add default styling and allow for custom styles
+	css = f"css/{f}.css"
+	c = open(css, "w")
+	style = open("css/default.css", "r").read()
+	c.write(style)
+	w.write(f'<link rel="stylesheet" href="{css}">\n\n\n')
+	w.write('<div class="markdown-body">\n')
 	while r.tell() < fSize:
 		char = r.read(1)
 		if char == "\n":
@@ -142,7 +147,7 @@ for f in files:
 			else:
 				w.write(f'<h{hCount}>')
 				if hCount == 1:
-					lineEnd = f"</h{hCount}><hr>"
+					lineEnd = f"</h{hCount}>"
 				else:
 					lineEnd = f"</h{hCount}>"
 		elif char == "*":
@@ -365,3 +370,4 @@ for f in files:
 			w.write(char)
 		lastC = char
 		i += 1
+w.write('</div>\n')
