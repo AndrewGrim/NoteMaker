@@ -35,6 +35,8 @@ text
 - [ ] unchecked
 - [x] checked
 
+<progress value="22" max="100"></progress>
+
 ![alternative text](images/Nergigante24.png)
 
 [this is a link](https://google.com)

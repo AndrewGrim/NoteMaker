@@ -13,6 +13,7 @@ Currently supported markdown:
 	blockquote
 	code
 	checkboxes
+	inline html
 	unordered list(WIP) atm only 1 inner list supported
 """
 
@@ -41,6 +42,7 @@ for f in files:
 	lastOffset = 0
 	innerList = False
 	check = False
+	html = False
 	# TODO should probably go back to a line by line read and check only the first index at first, more if needed
 	# cause at the moment if i put a hash anywhere in text it will check if its a heading
 	# even if its a quote or a coment or whatever
@@ -106,6 +108,15 @@ for f in files:
 				#lastOffset = offset
 			else:
 				w.write(char)
+		elif html:
+			if char == ">":
+				html = False
+				lineEnd = "<br><br>"
+				if r.read(1) == "\n":
+					pass
+				else:
+					r.seek(r.tell() - 1)
+			w.write(char)
 		elif char == "\n":
 			if lineEnd != "":
 				w.write(lineEnd)
@@ -348,8 +359,8 @@ for f in files:
 			else:
 				print(f"Line: {line}, TotalChar: {i} -> Improperly formatted underline!")
 		elif char == "<":
-			# start "state" html tag
 			w.write(char)
+			html = True
 		else:
 			w.write(char)
 		lastC = char
