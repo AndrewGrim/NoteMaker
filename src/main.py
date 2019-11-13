@@ -9,7 +9,7 @@ Currently supported markdown:
 	link
 	blockquote
 	code
-	unordered list(WIP)
+	unordered list(WIP) atm supports up to 1 inner list using spaces as indentation
 """
 
 def fileSize(fname):
@@ -18,20 +18,24 @@ def fileSize(fname):
 	return statinfo.st_size
 
 
-files = ["basic", "advanced_supported", "advanced"]
+files = ["basic", "advanced_supported"]#, "advanced"]
 for f in files: 
 	r = open(f"{f}.md", "r")
 	w = open(f"{f}.html", "w")
 
-	#w.write(r.read(1))
-	#print(fileSize("testFile.md"))
-	#r.tell() -> 105
-	#r.seek(105)
 	fSize = fileSize(f"{f}.md")
 	i = 0
 	lineEnd = ""
-	ignore = False
+	code = False
+	uList = False
+	oList = False
 	line = 0
+	lastC = ""
+	li = False
+	lCount = 0
+	indent = 0
+	lastOffset = 0
+	innerList = False
 	# TODO should probably go back to a line by line read and check only the first index at first, more if needed
 	# cause at the moment if i put a hash anywhere in text it will check if its a heading
 	# even if its a quote or a coment or whatever
@@ -41,9 +45,9 @@ for f in files:
 		if char == "\n":
 			line += 1
 
-		if ignore:
+		if code:
 			if char == "`":
-				ignore = False
+				code = False
 				if r.read(1) == "\n":
 					lineEnd += "<br><br>"
 					r.seek(r.tell() - 1)
@@ -51,6 +55,53 @@ for f in files:
 					r.seek(r.tell() - 1)
 			else:
 				w.write(char)
+		elif uList:
+			if char == "\n" and lastC == "\n":
+				uList = False
+				w.write(lineEnd)
+				lineEnd = ""
+			elif char == "\n" and li:
+				w.write("</li>")
+				li = False
+			elif char == "*":
+				"""if lastC == " ":
+					indent = 1
+					startPos = r.tell()
+					offset = 4
+					r.seek(startPos - 2)
+					while True:
+						c = r.read(1)
+						if c == "\n":
+							break
+						elif c == " ":
+							r.seek(r.tell() - offset)
+							offset += 1"""
+				#if lastOffset == offset:
+				if lastC == " ":
+					c = r.read(1)
+					if c == " " and not innerList:
+						w.write("\n<ul>\n<li>")
+						li = True
+						lineEnd = "\n</ul>\n\n"
+						innerList = True
+						lCount += 1
+						lineEnd = "\n</ul>" * lCount
+					elif c == " ":
+						w.write("\n<li>")
+						li = True
+						lineEnd += "\n\n"
+					else:
+						r.seek(r.tell() - 1)
+				else:
+					w.write("\n<ul>\n<li>")
+					li = True
+					lCount += 1
+					lineEnd = "\n</ul>" * lCount + "\n\n"
+					innerList = False
+				#lastOffset = offset
+			else:
+				w.write(char)
+
 		elif char == "\n":
 			if lineEnd != "":
 				w.write(lineEnd)
@@ -73,12 +124,14 @@ for f in files:
 					lineEnd = f"</h{hCount}><hr>"
 				else:
 					lineEnd = f"</h{hCount}>"
-		elif char in ["*", "-", "+"]: # or char == "-" # or char == "+"
+		elif char == "*":
 			nextC = r.read(1)
-			# TODO this needs to look at the next line since we want to allow numbered lists
 			if nextC == " ":
 				w.write("<ul>\n<li>")
-				lineEnd = "</li>\n</ul>"
+				lineEnd = "\n</ul>"
+				uList = True
+				li = True
+				lCount += 1
 			elif nextC not in ["\n", " ", "*"]:
 				r.seek(r.tell() - 1)
 				c = ""
@@ -207,10 +260,11 @@ for f in files:
 		elif char == "`":
 			w.write("<code>")
 			lineEnd = "</code>"
-			ignore = True
+			code = True
 		elif char == "<":
 			# start state html tag
 			w.write(char)
 		else:
 			w.write(char)
+		lastC = char
 		i += 1

@@ -11,8 +11,8 @@
 ###### heading6
 
 * list item 1
-
-* list item 2
+  * inner list 1
+  * inner list 2
 
 > this is a block quote
 
