@@ -11,6 +11,9 @@ Currently supported markdown:
 	code
 	checkboxes
 	unordered list(WIP) atm only 1 inner list supported
+
+	todo:
+		hr = ---
 """
 
 def fileSize(fname):
@@ -286,8 +289,60 @@ for f in files:
 					check = True
 			else:
 				print(f"Line: {line}, TotalChar: {i} -> Improperly formatted checklist!")
+		elif char == "~":
+			nextC = r.read(1)
+			if nextC == "~":
+				new = ""
+				text = ""
+				while True:
+					c = r.read(1)
+					if c == "~":
+						if r.read(1) == "~":
+							if r.read(1) == "\n":
+								new = "<br><br>"
+								r.seek(r.tell() - 1)
+								break
+							else:
+								r.seek(r.tell() - 1)
+								break
+						else:
+							print(f"Line: {line}, TotalChar: {i} -> Improperly formatted strikethrough!")
+					elif c == "\n":
+						print(f"Line: {line}, TotalChar: {i} -> Couldn't find the closing ~!")
+						break
+					else:
+						text += c
+				w.write(f'<strike>{text}</strike>{new}')
+			else:
+				print(f"Line: {line}, TotalChar: {i} -> Improperly formatted strikethrough!")
+		elif char == "_":
+			nextC = r.read(1)
+			if nextC == "_":
+				new = ""
+				text = ""
+				while True:
+					c = r.read(1)
+					if c == "_":
+						if r.read(1) == "_":
+							if r.read(1) == "\n":
+								new = "<br><br>"
+								r.seek(r.tell() - 1)
+								break
+							else:
+								r.seek(r.tell() - 1)
+								break
+						else:
+							print(f"Line: {line}, TotalChar: {i} -> Improperly formatted underline!")
+					elif c == "\n":
+						print(f"Line: {line}, TotalChar: {i} -> Couldn't find the closing _!")
+						break
+					else:
+						text += c
+				w.write(f'<u>{text}</u>{new}')
+			else:
+				print(f"Line: {line}, TotalChar: {i} -> Improperly formatted underline!")
 		elif char == "<":
-			# start state html tag
+			# start "state" html tag
 			w.write(char)
 		else:
 			w.write(char)

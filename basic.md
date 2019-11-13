@@ -22,6 +22,10 @@
 
 *italic*
 
+~~strikethrough~~
+
+__underlined__
+
 `code`
 
 - [ ] unchecked
