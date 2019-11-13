@@ -9,7 +9,7 @@ Currently supported markdown:
 	link
 	blockquote
 	code
-	unordered list(WIP) atm supports up to 1 inner list using spaces as indentation
+	unordered list(WIP)
 """
 
 def fileSize(fname):
@@ -77,7 +77,7 @@ for f in files:
 							r.seek(r.tell() - offset)
 							offset += 1"""
 				#if lastOffset == offset:
-				if lastC == " ":
+				if lastC == "\t" or lastC == " ":
 					c = r.read(1)
 					if c == " " and not innerList:
 						w.write("\n<ul>\n<li>")
