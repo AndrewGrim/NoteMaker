@@ -9,7 +9,8 @@ Currently supported markdown:
 	link
 	blockquote
 	code
-	unordered list(WIP)
+	checkboxes
+	unordered list(WIP) atm only 1 inner list supported
 """
 
 def fileSize(fname):
@@ -36,6 +37,7 @@ for f in files:
 	indent = 0
 	lastOffset = 0
 	innerList = False
+	check = False
 	# TODO should probably go back to a line by line read and check only the first index at first, more if needed
 	# cause at the moment if i put a hash anywhere in text it will check if its a heading
 	# even if its a quote or a coment or whatever
@@ -101,11 +103,16 @@ for f in files:
 				#lastOffset = offset
 			else:
 				w.write(char)
-
 		elif char == "\n":
 			if lineEnd != "":
 				w.write(lineEnd)
 				lineEnd = ""
+				if check and r.read(1) == "\n":
+					w.write("<br>")
+					check = False
+				elif check:
+					check = False
+				r.seek(r.tell() - 1)
 			w.write("\n")
 		elif char == "#":
 			hCount = 1
@@ -261,6 +268,24 @@ for f in files:
 			w.write("<code>")
 			lineEnd = "</code>"
 			code = True
+		elif char == "-":
+			nextC = r.read(1)
+			if nextC == " ":
+				c = r.read(1)
+				if c == "[":
+					checked = ""
+					c = r.read(1)
+					if c == "x" and r.read(1) == "]":
+						checked = "checked"
+					elif c == " " and r.read(1) == "]":
+						pass
+					else:
+						print(f"Line: {line}, TotalChar: {i} -> Improperly formatted checklist! Missing space or x in brackets!")
+					w.write(f'<input type="checkbox" {checked}>')
+					lineEnd = "<br>"
+					check = True
+			else:
+				print(f"Line: {line}, TotalChar: {i} -> Improperly formatted checklist!")
 		elif char == "<":
 			# start state html tag
 			w.write(char)

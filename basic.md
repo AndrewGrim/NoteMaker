@@ -24,6 +24,9 @@
 
 `code`
 
+- [ ] unchecked
+- [x] checked
+
 ![alternative text](images/Nergigante24.png)
 
 [this is a link](https://google.com)
