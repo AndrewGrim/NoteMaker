@@ -29,7 +29,7 @@ Currently supported markdown:
 		footnotes
 """
 
-def parse(file: str):
+def parse(mdFile: str):
 	"""
 	This will read from the specified markdown file.
 	Write the html to the same name with an html extension and
@@ -42,6 +42,7 @@ def parse(file: str):
 
 	#files = ["basic", "advanced_supported"]#, "advanced"]
 	#for f in files: 
+	f = os.path.splitext(mdFile)[0]
 	r = open(f"{f}.md", "r")
 	w = open(f"{f}.html", "w")
 
@@ -64,7 +65,7 @@ def parse(file: str):
 	# cause at the moment if i put a hash anywhere in text it will check if its a heading
 	# even if its a quote or a coment or whatever
 	# TODO add default styling and allow for custom styles
-	css = f"css/{f}.css"
+	css = f"{f}.css"
 	c = open(css, "w")
 	style = open("css/default.css", "r").read()
 	c.write(style)
@@ -394,5 +395,9 @@ if len(args) == 2:
 	parse(args[1])
 elif len(args) == 1:
 	print("You need to specify the file to parse!")
+	print("""
+Usage:
+	ParseMarkdown <file.md>
+""")
 else:
 	print("The program only supports one file argument atm!")

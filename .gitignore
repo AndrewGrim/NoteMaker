@@ -135,3 +135,6 @@ run.bat.laptop
 markdown cheetsheet.html
 markdown cheetsheet.md
 advanced_supported.html
+
+/Notes
+ParseMarkdown.exe
