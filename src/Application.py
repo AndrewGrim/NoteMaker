@@ -1,17 +1,20 @@
 import time
 import os
+import subprocess
 
 import wx
 import wx.html2 as webview
 import wx.stc as stc
+
+from ParseMarkdown import parse
 
 class Application(wx.Frame):
 
 	def __init__(self, *args, **kw):
 		super(Application, self).__init__(*args, **kw)
 
-		self.currentHTML = f"{os.getcwd()}/basic.html"
-		self.currentMD = f"{os.getcwd()}/basic.md"
+		self.currentHTML = f"{os.getcwd()}/Notes/html/test.html"
+		self.currentMD = "Notes/test.md"
 
 		panel = wx.Panel(self)
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -19,7 +22,8 @@ class Application(wx.Frame):
 		self.edit = stc.StyledTextCtrl(panel)
 		self.edit.SetLexer(stc.STC_LEX_MARKDOWN)
 		self.edit.SetMarginType(1, stc.STC_MARGIN_NUMBER)
-		self.edit.SetMarginWidth(1, 25)
+		self.edit.SetMarginWidth(1, 30)
+		self.edit.SetWrapMode(stc.STC_WRAP_WORD)
 		#self.edit.SetViewWhiteSpace(True)
 		self.setColors()
 
@@ -43,6 +47,8 @@ class Application(wx.Frame):
 	def makeMenuBar(self):
 		fileMenu = wx.Menu()
 		saveItem = fileMenu.Append(-1, "&Save\tCtrl-S")
+		openItem = fileMenu.Append(-1, "&Save\tCtrl-O")
+		reloadItem = fileMenu.Append(-1, "&Save\tCtrl-R")
 		
 		menuBar = wx.MenuBar()
 		menuBar.Append(fileMenu, "&File")
@@ -50,14 +56,50 @@ class Application(wx.Frame):
 		self.SetMenuBar(menuBar)
 
 		self.Bind(wx.EVT_MENU, self.onSave, saveItem)
+		self.Bind(wx.EVT_MENU, self.onOpen, openItem)
+		self.Bind(wx.EVT_MENU, self.onReload, reloadItem)
 
 
 	def onSave(self, event):
-		f = open(self.currentMD, "w")
-		f.write(self.edit.GetValue())
+		f = open(self.currentMD, "wb")
+		f.write(self.edit.GetValue().encode("UTF-8").replace(b"\r\n", b"\n"))
+		f.close()
+
+		start = time.time()
+		parse(self.currentMD)
+		end = time.time()
+		print(f"Parse time: {round(end - start, 2)}s")
+		self.wv.Reload()
+		self.edit.SetFocus()
+
+
+	def onOpen(self, event):
+		fd = wx.FileDialog(self, "Open...", wildcard="Markdown files (*.md)|*.md", style=wx.FD_OPEN)
+
+		if fd.ShowModal() == wx.ID_CANCEL:
+			return     
+
+		pathname = fd.GetPath()
+		try:
+			f = open(pathname, 'r')
+			f.close()
+			self.edit.LoadFile(pathname)
+			parse(pathname)
+			bName = os.path.basename(os.path.splitext(pathname)[0])
+			html = f"{os.getcwd()}/Notes/html/{bName}.html"
+			self.wv.LoadURL(html)
+		except IOError:
+			wx.LogError("Cannot open the specified file '%s'." % pathname)
+
+	
+	def onReload(self, event):
+		self.wv.Reload()
+		self.edit.SetFocus()
 		
 
 	def setColors(self):
+		# custom highlight link and html
+
 		faces = {
 			'times': 'Times New Roman',
 			'mono' : 'Courier New',

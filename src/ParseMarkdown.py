@@ -38,13 +38,16 @@ def parse(mdFile: str):
 
 	def fileSize(fname):
 		statinfo = os.stat(fname)
+
 		return statinfo.st_size
 
 	#files = ["basic", "advanced_supported"]#, "advanced"]
 	#for f in files: 
 	f = os.path.splitext(mdFile)[0]
 	r = open(f"{f}.md", "r")
-	w = open(f"{f}.html", "w")
+	
+	html = f[f.rfind("/") + 1:]
+	w = open(f"Notes/html/{html}.html", "w")
 
 	fSize = fileSize(f"{f}.md")
 	i = 0
@@ -65,10 +68,12 @@ def parse(mdFile: str):
 	# cause at the moment if i put a hash anywhere in text it will check if its a heading
 	# even if its a quote or a coment or whatever
 	# TODO add default styling and allow for custom styles
-	css = f"{f}.css"
+	css = f[f.rfind("/") + 1:]
+	css = f"Notes/css/{css}.css"
 	c = open(css, "w")
 	style = open("css/default.css", "r").read()
 	c.write(style)
+	css = css.replace("Notes", "..")
 	w.write(f'<link rel="stylesheet" href="{css}">\n\n\n')
 	w.write('<div class="markdown-body">\n')
 	while r.tell() < fSize:
@@ -160,15 +165,13 @@ def parse(mdFile: str):
 					break
 				elif c == "\n":
 					print(f"Line: {line}, TotalChar: {i} -> Improperly formatted heading!")
+					break
 				hCount += 1
 			if hCount > 6:
 				print(f"Line: {line}, TotalChar: {i} -> Heading number is too high!")
 			else:
 				w.write(f'<h{hCount}>')
-				if hCount == 1:
-					lineEnd = f"</h{hCount}>"
-				else:
-					lineEnd = f"</h{hCount}>"
+				lineEnd = f"</h{hCount}>"
 		elif char == "*":
 			nextC = r.read(1)
 			if nextC == " ":
@@ -390,14 +393,15 @@ def parse(mdFile: str):
 		i += 1
 	w.write('</div>\n')
 
-args = sys.argv
-if len(args) == 2:
-	parse(args[1])
-elif len(args) == 1:
-	print("You need to specify the file to parse!")
-	print("""
-Usage:
-	ParseMarkdown <file.md>
-""")
-else:
-	print("The program only supports one file argument atm!")
+if __name__ == "__main__":
+	args = sys.argv
+	if len(args) == 2:
+		parse(args[1])
+	elif len(args) == 1:
+		print("You need to specify the file to parse!")
+		print("""
+	Usage:
+		ParseMarkdown <file.md>
+	""")
+	else:
+		print("The program only supports one file argument atm!")
