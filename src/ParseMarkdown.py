@@ -1,3 +1,6 @@
+import os
+import sys
+
 """
 A very simple and naive markdown parser.
 Reads a file a char at a time and writes the equivalent html to another file.
@@ -15,15 +18,30 @@ Currently supported markdown:
 	checkboxes
 	inline html
 	unordered list(WIP) atm only 1 inner list supported
+
+	todo:
+		better ul
+		ol
+		code blocks ie ```code``` these should work across multiple lines
+			later add support for synatx highlighting, prob just keywords using regex within the code block
+		term definitions
+		tables
+		footnotes
 """
 
-def fileSize(fname):
-	import os
-	statinfo = os.stat(fname)
-	return statinfo.st_size
+def parse(file: str):
+	"""
+	This will read from the specified markdown file.
+	Write the html to the same name with an html extension and
+	make a css file again with the same name but .css
+	"""
 
-files = ["basic", "advanced_supported"]#, "advanced"]
-for f in files: 
+	def fileSize(fname):
+		statinfo = os.stat(fname)
+		return statinfo.st_size
+
+	#files = ["basic", "advanced_supported"]#, "advanced"]
+	#for f in files: 
 	r = open(f"{f}.md", "r")
 	w = open(f"{f}.html", "w")
 
@@ -269,9 +287,8 @@ for f in files:
 					else:
 						link += c
 				w.write(f'<a href="{link}">{text}</a>{new}')
-		elif char == ">": # TODO this is currently bothersome when parsing inline html
-			nextC = r.read(1)
-			if nextC == " ":
+		elif char == ">":
+			if lastC in [" ", "\n", "\t"]:
 				c = ""
 				block = ""
 				while True:
@@ -370,4 +387,12 @@ for f in files:
 			w.write(char)
 		lastC = char
 		i += 1
-w.write('</div>\n')
+	w.write('</div>\n')
+
+args = sys.argv
+if len(args) == 2:
+	parse(args[1])
+elif len(args) == 1:
+	print("You need to specify the file to parse!")
+else:
+	print("The program only supports one file argument atm!")
