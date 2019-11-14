@@ -11,8 +11,8 @@
 ###### heading6
 
 * list 1
-	* inner list 1
-	* inner list 2
+  * inner list 1
+  * inner list 2
 
 * list 2
 
@@ -34,8 +34,6 @@ text
 
 - [ ] unchecked
 - [x] checked
-
-<progress value="22" max="100"></progress>
 
 ![alternative text](images/Nergigante24.png)
 

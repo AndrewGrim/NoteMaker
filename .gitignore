@@ -132,3 +132,6 @@ Makefile
 markdown cheetsheet.txt
 run.bat
 run.bat.laptop
+markdown cheetsheet.html
+markdown cheetsheet.md
+advanced_supported.html
