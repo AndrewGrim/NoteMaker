@@ -22,7 +22,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 	min-width: 200px;
 	max-width: 980px;
 	margin: 0 auto;
-	padding: 45px;
+	padding-left: 45px;
+	padding-right: 45px;
 }
 
 @media (max-width: 767px) {
@@ -633,13 +634,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 }
 
 .markdown-body h6 {
-	color: #6a737d;
-	font-size: .85em;
+	color: #1b1f23;
+	font-size: .75em;
 }
 
 .markdown-body ol,
 .markdown-body ul {
-	padding-left: 2em;
+	padding-left: 0em;
 }
 
 .markdown-body ol ol,
