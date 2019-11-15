@@ -13,12 +13,12 @@ Token = NewType('Token', None)
 
 class MD(Enum):
 	HEADING = 0
-	HEADING1 = 1
-	HEADING2 = 2
-	HEADING3 = 3
-	HEADING4 = 4
-	HEADING5 = 5
-	HEADING6 = 6
+	HEADING1 = 1 # these are probably not neccessary since we know the begin and end points
+	HEADING2 = 2 # these are probably not neccessary since we know the begin and end points
+	HEADING3 = 3 # these are probably not neccessary since we know the begin and end points
+	HEADING4 = 4 # these are probably not neccessary since we know the begin and end points
+	HEADING5 = 5 # these are probably not neccessary since we know the begin and end points
+	HEADING6 = 6 # these are probably not neccessary since we know the begin and end points
 	BOLD = 7
 	ITALIC = 8
 	UNDER = 9
@@ -32,6 +32,11 @@ class MD(Enum):
 	IMAGE = 17
 	LINK = 18
 	HTML = 19
+
+	NEWLINE = 20
+	TAB = 21
+	SPACE = 22
+	TEXT = 23
 
 
 class Token:
@@ -83,7 +88,7 @@ def lex(mdFile: str = "Notes/test.md") -> List[Token]:
 			line += 1 # a rough approximation
 
 		if char == "\n":
-			pass
+			tokens.append(Token(MD.NEWLINE, i, i + 1))
 			"""if lineEnd != "":
 				lineEnd = ""
 				if check and r.read(1) == "\n":
@@ -91,7 +96,11 @@ def lex(mdFile: str = "Notes/test.md") -> List[Token]:
 				elif check:
 					check = False
 				r.seek(r.tell() - 1)"""
-		if char == "#":
+		elif char == " ":
+			tokens.append(Token(MD.SPACE, i, i + 1))
+		elif char == "\t":
+			tokens.append(Token(MD.TAB, i, i + 1))
+		elif char == "#":
 			hCount = 1
 			while True:
 				c = r.read(1)
@@ -106,7 +115,10 @@ def lex(mdFile: str = "Notes/test.md") -> List[Token]:
 				print(f"Line: {line}, TotalChar: {i} -> Heading number is too high!")
 			else:
 				tokens.append(Token(MD.HEADING, i - hCount, i))
-				lineEnd = f"</h{hCount}>"
+		elif char == "`":
+			tokens.append(Token(MD.CODE, i, i + 1))
+		else:
+			tokens.append(Token(MD.TEXT, i, i + 1))
 		i += 1
 
 	return tokens

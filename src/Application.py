@@ -7,7 +7,7 @@ import wx.html2 as webview
 import wx.stc as stc
 
 from ParseMarkdown import parse
-from Lexer import lex
+from Lexer import *
 
 class Application(wx.Frame):
 
@@ -25,7 +25,8 @@ class Application(wx.Frame):
 		self.edit.SetMarginType(1, stc.STC_MARGIN_NUMBER)
 		self.edit.SetMarginWidth(1, 30)
 		self.edit.SetWrapMode(stc.STC_WRAP_WORD)
-		#self.edit.SetViewWhiteSpace(True)
+		self.edit.SetViewWhiteSpace(True)
+		self.edit.SetViewEOL(True)
 		#self.setColors()
 
 		sizer.Add(self.edit, 4, wx.EXPAND)
@@ -43,6 +44,7 @@ class Application(wx.Frame):
 		self.Center()
 		self.SetTitle("NoteMaker")
 		self.Show()
+		self.onReload(None)
 
 
 	def makeMenuBar(self):
@@ -103,16 +105,29 @@ class Application(wx.Frame):
 			'size' : 10,
 			'size2': 8,
 		}
-		self.edit.StyleSetSpec(stc.STC_STYLE_DEFAULT, "back:#282828,face:%(helv)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(stc.STC_STYLE_DEFAULT, "back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleClearAll()
-		self.edit.StyleSetSpec(1, "fore:#FF00FF,back:#282828,face:%(helv)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(1, "fore:#EFCD1E,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(2, "fore:#d5c4a1,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(3, "fore:#00FF00,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(4, "fore:#b8bb26,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		#start = self.edit.FindText(0, self.edit.GetLength(), "<")
 		#end = self.edit.FindText(start, self.edit.GetLength(), ">")
-		print(lex())
+		#print(lex())
+		start = time.time()
 		tokens = lex()
 		for t in tokens:
 			self.edit.StartStyling(t.begin, 0xff)
-			self.edit.SetStyling(t.end - t.begin, 1)
+			if t.id == MD.HEADING:
+				self.edit.SetStyling(t.end - t.begin, 1)
+			elif t.id == MD.SPACE or t.id == MD.TAB or t.id == MD.NEWLINE:
+				self.edit.SetStyling(t.end - t.begin, 3)
+			elif t.id == MD.CODE:
+				self.edit.SetStyling(t.end - t.begin, 4)
+			else:
+				self.edit.SetStyling(t.end - t.begin, 2)
+		end = time.time()
+		print(f"Lex and highlight time: {round(end - start, 2)}")
 		#print(start)
 		#print(end)
 		"""self.wv.Reload()
