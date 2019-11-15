@@ -9,6 +9,7 @@ from typing import Dict
 from typing import NewType
 
 MD_ENUM = NewType('MD_ENUM', int)
+Token = NewType('Token', None)
 
 """
 A very simple and naive markdown parser.
@@ -39,6 +40,7 @@ Currently supported markdown:
 """
 
 class MD(Enum):
+	HEADING = 0
 	HEADING1 = 1
 	HEADING2 = 2
 	HEADING3 = 3
@@ -49,14 +51,15 @@ class MD(Enum):
 	ITALIC = 8
 	UNDER = 9
 	STRIKE = 10
-	CODE = 11
-	ULIST = 12
-	OLIST = 13
-	CHECKED = 14
-	UNCHECKED = 15
-	IMAGE = 16
-	LINK = 17
-	HTML = 18
+	BLOCKQUOTE = 11
+	CODE = 12
+	ULIST = 13
+	OLIST = 14
+	CHECKED = 15
+	UNCHECKED = 16
+	IMAGE = 17
+	LINK = 18
+	HTML = 19
 
 
 class Token:
@@ -66,13 +69,23 @@ class Token:
 		self.content = content
 		self.end = end
 
+	
+	def __str__(self) -> str:
+		return f"\nToken:\n\tid:{self.id}\n\tcontent:{self.content}\n\tend:{self.end}\n"
 
-def parse(mdFile: str):
+
+	def __repr__(self) -> str:
+		return self.__str__()
+
+
+def parse(mdFile: str) -> List[Token]:
 	"""
 	This will read from the specified markdown file.
 	Write the html to the same name with an html extension and
 	make a css file again with the same name but .css
 	"""
+
+	tokens = []
 
 	def fileSize(fname):
 		statinfo = os.stat(fname)
@@ -208,6 +221,7 @@ def parse(mdFile: str):
 			if hCount > 6:
 				print(f"Line: {line}, TotalChar: {i} -> Heading number is too high!")
 			else:
+				tokens.append(Token(MD.HEADING))
 				w.write(f'<h{hCount}>')
 				lineEnd = f"</h{hCount}>"
 		elif char == "*":
@@ -431,10 +445,12 @@ def parse(mdFile: str):
 		i += 1
 	w.write('</div>\n')
 
+	return tokens
+
 if __name__ == "__main__":
 	args = sys.argv
 	if len(args) == 2:
-		parse(args[1])
+		print(parse(args[1]))
 	elif len(args) == 1:
 		print("You need to specify the file to parse!")
 		print("""
