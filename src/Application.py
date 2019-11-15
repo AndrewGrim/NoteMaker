@@ -130,7 +130,7 @@ class Application(wx.Frame):
 			else:
 				self.edit.SetStyling(t.end - t.begin, 2)
 		end = time.time()
-		print(f"Lex and highlight time: {round(end - start, 2)}")
+		ok(f"Lex and highlight time: {round(end - start, 2)}")
 		#print(start)
 		#print(end)
 		"""self.wv.Reload()
@@ -189,9 +189,9 @@ class Application(wx.Frame):
 
 
 if __name__ == '__main__':
-    start = time.time()
-    app = wx.App()
-    frm = Application(None)
-    end = time.time()
-    print(f"Application load time: {round(end - start, 2)}s")
-    app.MainLoop()
+	start = time.time()
+	app = wx.App()
+	frm = Application(None)
+	end = time.time()
+	ok(f"Application load time: {round(end - start, 2)}s")
+	app.MainLoop()

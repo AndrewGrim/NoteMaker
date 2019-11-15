@@ -19,6 +19,13 @@ def warn(message: str) -> None:
 	print(TCOLOR.WARNING + message + TCOLOR.ENDC)
 
 
+def ok(message: str) -> None:
+	print(TCOLOR.OKGREEN + message + TCOLOR.ENDC)
+
+def debug(message: str) -> None:
+	print(TCOLOR.HEADER + message + TCOLOR.ENDC)
+
+
 class TCOLOR:
 	HEADER = '\033[95m'
 	OKBLUE = '\033[94m'
