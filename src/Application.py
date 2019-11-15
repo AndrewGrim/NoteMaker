@@ -20,12 +20,12 @@ class Application(wx.Frame):
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
 
 		self.edit = stc.StyledTextCtrl(panel)
-		#self.edit.SetLexer(stc.STC_LEX_MARKDOWN)
+		self.edit.SetLexer(stc.STC_LEX_MARKDOWN)
 		self.edit.SetMarginType(1, stc.STC_MARGIN_NUMBER)
 		self.edit.SetMarginWidth(1, 30)
 		self.edit.SetWrapMode(stc.STC_WRAP_WORD)
 		#self.edit.SetViewWhiteSpace(True)
-		#self.setColors()
+		self.setColors()
 
 		sizer.Add(self.edit, 4, wx.EXPAND)
 
