@@ -20,12 +20,12 @@ class Application(wx.Frame):
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
 
 		self.edit = stc.StyledTextCtrl(panel)
-		self.edit.SetLexer(stc.STC_LEX_MARKDOWN)
+		#self.edit.SetLexer(stc.STC_LEX_MARKDOWN)
 		self.edit.SetMarginType(1, stc.STC_MARGIN_NUMBER)
 		self.edit.SetMarginWidth(1, 30)
 		self.edit.SetWrapMode(stc.STC_WRAP_WORD)
 		#self.edit.SetViewWhiteSpace(True)
-		self.setColors()
+		#self.setColors()
 
 		sizer.Add(self.edit, 4, wx.EXPAND)
 
@@ -93,8 +93,28 @@ class Application(wx.Frame):
 
 	
 	def onReload(self, event):
-		self.wv.Reload()
-		self.edit.SetFocus()
+		# TODO seems that if i want custom highlight for one thing ill need to do it my own way for the entire thing
+		faces = {
+			'times': 'Times New Roman',
+			'mono' : 'Courier New',
+			'helv' : 'Arial',
+			'other': 'Comic Sans MS',
+			'size' : 10,
+			'size2': 8,
+		}
+		self.edit.StyleSetSpec(stc.STC_STYLE_DEFAULT, "back:#282828,face:%(helv)s,size:%(size)d" % faces)
+		self.edit.StyleClearAll()
+		self.edit.StyleSetSpec(1, "fore:#FF00FF,back:#282828,face:%(helv)s,size:%(size)d" % faces)
+		start = self.edit.FindText(0, self.edit.GetLength(), "<")
+		end = self.edit.FindText(start, self.edit.GetLength(), ">")
+		self.edit.StartStyling(start, 0xff)
+		self.edit.SetStyling(end - start + 1, 1)
+		self.edit.StartStyling(0, 0xff)
+		self.edit.SetStyling(10, 1)
+		print(start)
+		print(end)
+		"""self.wv.Reload()
+		self.edit.SetFocus()"""
 		
 
 	def setColors(self):
