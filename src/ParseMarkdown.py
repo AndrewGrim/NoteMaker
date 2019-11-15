@@ -1,5 +1,14 @@
 import os
 import sys
+from enum import Enum
+import typing
+from typing import List
+from typing import Union
+from typing import Tuple
+from typing import Dict
+from typing import NewType
+
+MD_ENUM = NewType('MD_ENUM', int)
 
 """
 A very simple and naive markdown parser.
@@ -28,6 +37,35 @@ Currently supported markdown:
 		tables
 		footnotes
 """
+
+class MD(Enum):
+	HEADING1 = 1
+	HEADING2 = 2
+	HEADING3 = 3
+	HEADING4 = 4
+	HEADING5 = 5
+	HEADING6 = 6
+	BOLD = 7
+	ITALIC = 8
+	UNDER = 9
+	STRIKE = 10
+	CODE = 11
+	ULIST = 12
+	OLIST = 13
+	CHECKED = 14
+	UNCHECKED = 15
+	IMAGE = 16
+	LINK = 17
+	HTML = 18
+
+
+class Token:
+
+	def __init__(self, id: MD_ENUM, content: str = "", end: str = "") -> None:
+		self.id = id
+		self.content = content
+		self.end = end
+
 
 def parse(mdFile: str):
 	"""
