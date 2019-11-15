@@ -115,8 +115,11 @@ class Application(wx.Frame):
 		#end = self.edit.FindText(start, self.edit.GetLength(), ">")
 		#print(lex())
 		start = time.time()
-		tokens = lex()
-		for t in tokens:
+		tokens = lex(self.edit.GetValue()) 
+		for i, t in enumerate(tokens):
+			#if i == 10:
+			#	break
+			#print(t)
 			self.edit.StartStyling(t.begin, 0xff)
 			if t.id == MD.HEADING:
 				self.edit.SetStyling(t.end - t.begin, 1)

@@ -11,6 +11,25 @@ from typing import NewType
 MD_ENUM = NewType('MD_ENUM', int)
 Token = NewType('Token', None)
 
+def fail(message: str) -> None:
+	print(TCOLOR.FAIL + message + TCOLOR.ENDC)
+
+
+def warn(message: str) -> None:
+	print(TCOLOR.WARNING + message + TCOLOR.ENDC)
+
+
+class TCOLOR:
+	HEADER = '\033[95m'
+	OKBLUE = '\033[94m'
+	OKGREEN = '\033[92m'
+	WARNING = '\033[93m'
+	FAIL = '\033[91m'
+	ENDC = '\033[0m'
+	BOLD = '\033[1m'
+	UNDERLINE = '\033[4m'
+
+
 class MD(Enum):
 	HEADING = 0
 	HEADING1 = 1 # these are probably not neccessary since we know the begin and end points
@@ -56,18 +75,9 @@ class Token:
 		return self.__str__()
 
 
-def lex(mdFile: str = "Notes/test.md") -> List[Token]:
+def lex(text: str) -> List[Token]:
 	tokens = []
 
-	def fileSize(fname):
-		statinfo = os.stat(fname)
-
-		return statinfo.st_size
-
-
-	f = mdFile
-	r = open(f, "r")
-	fSize = fileSize(f)
 	i = 0
 	lineEnd = ""
 	code = False
@@ -82,39 +92,32 @@ def lex(mdFile: str = "Notes/test.md") -> List[Token]:
 	innerList = False
 	check = False
 	html = False
-	while r.tell() < fSize:
-		char = r.read(1)
+	while i < len(text):
+		char = text[i]
 		if char == "\n":
 			line += 1 # a rough approximation
 
 		if char == "\n":
 			tokens.append(Token(MD.NEWLINE, i, i + 1))
-			"""if lineEnd != "":
-				lineEnd = ""
-				if check and r.read(1) == "\n":
-					check = False
-				elif check:
-					check = False
-				r.seek(r.tell() - 1)"""
 		elif char == " ":
 			tokens.append(Token(MD.SPACE, i, i + 1))
 		elif char == "\t":
 			tokens.append(Token(MD.TAB, i, i + 1))
 		elif char == "#":
-			hCount = 1
+			hCount = 0
 			while True:
-				c = r.read(1)
-				i += 1
+				c = text[i]
 				if c == " ":
+					i -= 1
 					break
 				elif c == "\n":
-					print(f"Line: {line}, TotalChar: {i} -> Improperly formatted heading!")
+					warn(f"Line: {line}, Index: {i} -> Improperly formatted heading!")
 					break
-				hCount += 1
-			if hCount > 6:
-				print(f"Line: {line}, TotalChar: {i} -> Heading number is too high!")
-			else:
-				tokens.append(Token(MD.HEADING, i - hCount, i))
+				else:
+					hCount += 1
+				i += 1
+			assert hCount < 7, fail(f"Line: {line}, Index: {i} -> Heading number is too high!")
+			tokens.append(Token(MD.HEADING, (i + 1) - hCount, i + 1))
 		elif char == "`":
 			tokens.append(Token(MD.CODE, i, i + 1))
 		else:
