@@ -83,13 +83,14 @@ def lex(mdFile: str = "Notes/test.md") -> List[Token]:
 			line += 1 # a rough approximation
 
 		if char == "\n":
-			if lineEnd != "":
+			pass
+			"""if lineEnd != "":
 				lineEnd = ""
 				if check and r.read(1) == "\n":
 					check = False
 				elif check:
 					check = False
-				r.seek(r.tell() - 1)
+				r.seek(r.tell() - 1)"""
 		if char == "#":
 			hCount = 1
 			while True:
@@ -104,7 +105,7 @@ def lex(mdFile: str = "Notes/test.md") -> List[Token]:
 			if hCount > 6:
 				print(f"Line: {line}, TotalChar: {i} -> Heading number is too high!")
 			else:
-				tokens.append(Token(MD.HEADING, i - hCount, i + hCount))
+				tokens.append(Token(MD.HEADING, i - hCount, i))
 				lineEnd = f"</h{hCount}>"
 		i += 1
 

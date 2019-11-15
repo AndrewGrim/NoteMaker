@@ -106,14 +106,15 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(stc.STC_STYLE_DEFAULT, "back:#282828,face:%(helv)s,size:%(size)d" % faces)
 		self.edit.StyleClearAll()
 		self.edit.StyleSetSpec(1, "fore:#FF00FF,back:#282828,face:%(helv)s,size:%(size)d" % faces)
-		start = self.edit.FindText(0, self.edit.GetLength(), "<")
-		end = self.edit.FindText(start, self.edit.GetLength(), ">")
-		self.edit.StartStyling(start, 0xff)
-		self.edit.SetStyling(end - start + 1, 1)
-		self.edit.StartStyling(0, 0xff)
-		self.edit.SetStyling(10, 1)
-		print(start)
-		print(end)
+		#start = self.edit.FindText(0, self.edit.GetLength(), "<")
+		#end = self.edit.FindText(start, self.edit.GetLength(), ">")
+		print(lex())
+		tokens = lex()
+		for t in tokens:
+			self.edit.StartStyling(t.begin, 0xff)
+			self.edit.SetStyling(t.end - t.begin, 1)
+		#print(start)
+		#print(end)
 		"""self.wv.Reload()
 		self.edit.SetFocus()"""
 		
