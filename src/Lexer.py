@@ -1,6 +1,6 @@
 import os
 import sys
-from enum import Enum
+from enum import IntEnum
 import typing
 from typing import List
 from typing import Union
@@ -37,7 +37,7 @@ class TCOLOR:
 	UNDERLINE = '\033[4m'
 
 
-class MD(Enum):
+class MD(IntEnum):
 	HEADING = 0
 	HEADING1 = 1 # these are probably not neccessary since we know the begin and end points
 	HEADING2 = 2 # these are probably not neccessary since we know the begin and end points

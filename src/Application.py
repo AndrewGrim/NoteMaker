@@ -9,6 +9,7 @@ import wx.stc as stc
 
 from ParseMarkdown import parse
 from Lexer import *
+from Styles import *
 
 class Application(wx.Frame):
 
@@ -30,6 +31,7 @@ class Application(wx.Frame):
 		self.edit.SetCaretForeground("WHITE")
 		self.edit.SetBackgroundColour("WHITE")
 		self.edit.SetWhitespaceSize(2)
+		self.setupStyling()
 		self.edit.Bind(wx.EVT_KEY_UP, self.onKeyUp)
 		#self.setColors()
 
@@ -52,29 +54,6 @@ class Application(wx.Frame):
 		
 
 	def onKeyUp(self, event):
-		faces = {
-			'times': 'Times New Roman',
-			'mono' : 'Courier New',
-			'helv' : 'Arial',
-			'other': 'Comic Sans MS',
-			'size' : 10,
-			'size2': 8,
-		}
-		self.edit.StyleSetSpec(stc.STC_STYLE_DEFAULT, "back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleClearAll()
-		self.edit.StyleSetSpec(stc.STC_STYLE_LINENUMBER,  "fore:#928374,back:#212121,face:%(mono)s,size:%(size2)d" % faces)
-		self.edit.StyleSetSpec(0, "fore:#d5c4a1,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(1, "fore:#EFCD1E,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(3, "fore:#00FF00,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(4, "fore:#b8bb26,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(5, "fore:#81ac71,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(6, "fore:#ff00ff,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(7, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.IndicatorSetStyle(0, stc.STC_INDIC_SQUIGGLE)
-		self.edit.IndicatorSetForeground(0, wx.RED)
-		#start = self.edit.FindText(0, self.edit.GetLength(), "<")
-		#end = self.edit.FindText(start, self.edit.GetLength(), ">")
-		#print(lex())
 		start = time.time()
 		tokens = lex(self.edit.GetValue()) 
 		error = False
@@ -86,20 +65,20 @@ class Application(wx.Frame):
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:
 				if t.id == MD.ERROR:
-					self.edit.SetStyling(t.end - t.begin, stc.STC_INDIC0_MASK | 0)
+					self.edit.SetStyling(t.end - t.begin, INDICATOR.ERROR | STYLE.TEXT)
 					error = True
 				elif t.id == MD.HEADING:
-					self.edit.SetStyling(t.end - t.begin, 1)
+					self.edit.SetStyling(t.end - t.begin, STYLE.HEADING)
 				elif t.id in [MD.SPACE, MD.TAB, MD.NEWLINE]:
-					self.edit.SetStyling(t.end - t.begin, 3)
+					self.edit.SetStyling(t.end - t.begin, STYLE.HIDDEN)
 				elif t.id in [MD.CODE, MD.CODE_BEGIN, MD.CODE_END]:
-					self.edit.SetStyling(t.end - t.begin, 4)
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODE)
 				elif t.id == MD.BLOCKQUOTE:
-					self.edit.SetStyling(t.end - t.begin, 5)
+					self.edit.SetStyling(t.end - t.begin, STYLE.BLOCKQUOTE)
 				elif t.id == MD.STRIKE:
-					self.edit.SetStyling(t.end - t.begin, 7)
+					self.edit.SetStyling(t.end - t.begin, STYLE.STRIKE)
 				else:
-					self.edit.SetStyling(t.end - t.begin, 0)
+					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
 			elif t.id == MD.NEWLINE:
 				error = False
 
@@ -188,6 +167,31 @@ class Application(wx.Frame):
 		else:
 			self.edit.SetViewWhiteSpace(False)
 			self.edit.SetViewEOL(False)
+
+
+	def setupStyling(self):
+		faces = {
+			'times': 'Times New Roman',
+			'mono' : 'Courier New',
+			'helv' : 'Arial',
+			'other': 'Comic Sans MS',
+			'size' : 10,
+			'size2': 8,
+		}
+
+		self.edit.StyleSetSpec(stc.STC_STYLE_DEFAULT, "back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleClearAll()
+		self.edit.StyleSetSpec(stc.STC_STYLE_LINENUMBER,  "fore:#928374,back:#212121,face:%(mono)s,size:%(size2)d" % faces)
+		self.edit.StyleSetSpec(0, "fore:#d5c4a1,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(1, "fore:#EFCD1E,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(3, "fore:#00FF00,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(4, "fore:#b8bb26,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(5, "fore:#81ac71,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(6, "fore:#ff00ff,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(7, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.IndicatorSetStyle(0, stc.STC_INDIC_SQUIGGLE)
+		self.edit.IndicatorSetForeground(0, wx.RED)
+
 
 	def setColors(self):
 		# custom highlight link and html
