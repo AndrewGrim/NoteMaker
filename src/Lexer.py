@@ -74,6 +74,9 @@ class MD(IntEnum):
 	UNDERLINE_BEGIN = 29
 	UNDERLINE_END = 30
 
+	ITALIC_BEGIN = 31
+	ITALIC_END = 32
+
 
 class Token:
 
@@ -111,6 +114,7 @@ def lex(text: str) -> List[Token]:
 	html = False
 	bold = False
 	underline = False
+	italic = False
 	while i < len(text):
 		char = text[i]
 		if char == "\n":
@@ -136,6 +140,12 @@ def lex(text: str) -> List[Token]:
 				i += 1
 			else:
 				tokens.append(Token(MD.UNDERLINE, i, i + 1))
+		elif italic:
+			if char == "*":
+				italic = False
+				tokens.append(Token(MD.ITALIC_END, i, i + 1))
+			else:
+				tokens.append(Token(MD.ITALIC, i, i + 1))
 		elif char == "\n":
 			tokens.append(Token(MD.NEWLINE, i, i + 1))
 		elif char == " ":
@@ -188,6 +198,9 @@ def lex(text: str) -> List[Token]:
 				tokens.append(Token(MD.BOLD_BEGIN, i, i + 2))
 				bold = True
 				i += 1
+			elif nextC.isalnum():
+				tokens.append(Token(MD.ITALIC_BEGIN, i, i + 1))
+				italic = True
 			else:
 				tokens.append(Token(MD.ERROR, i, i + 1))
 				warn(f"Line: {line}, Index: {i} -> Improperly formatted bold! Missing * !")

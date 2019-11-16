@@ -11,6 +11,7 @@ class STYLE(IntEnum):
 	BOLD = 8
 	UNDERLINE = 9
 	SYMBOL = 10
+	ITALIC = 11
 
 class INDICATOR(IntEnum):
 	ERROR = 32

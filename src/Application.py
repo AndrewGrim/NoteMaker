@@ -85,6 +85,10 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id == MD.UNDERLINE:
 					self.edit.SetStyling(t.end - t.begin, STYLE.UNDERLINE)
+				elif t.id in [MD.ITALIC_BEGIN, MD.ITALIC_END]:
+					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
+				elif t.id == MD.ITALIC:
+					self.edit.SetStyling(t.end - t.begin, STYLE.ITALIC)
 				else:
 					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
 			elif t.id == MD.NEWLINE:
@@ -198,6 +202,7 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(6, "fore:#ff00ff,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(7, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(10, "fore:#81ac71,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(11, "fore:#7d9d90,italic,face:%(mono)s,size:%(size)d" % faces)
 		# maybe have additional styles for the inside which is bold/underlined
 		# and maybe lex these same way that i do code?
 		self.edit.StyleSetSpec(8, "fore:#d9a62e,bold,size:%(size)d" % faces)
