@@ -8,114 +8,13 @@ from typing import Tuple
 from typing import Dict
 from typing import NewType
 
-MD_ENUM = NewType('MD_ENUM', int)
-Token = NewType('Token', None)
+from TokenTypes import *
+from Tokens import *
+from Debug import *
 
-def fail(message: str) -> None:
-	print(f"{TCOLOR.FAIL}FAILURE! {message}{TCOLOR.ENDC}")
+TToken = NewType('TToken', None)
 
-
-def warn(message: str) -> None:
-	print(f"{TCOLOR.WARNING}WARNING! {message}{TCOLOR.ENDC}")
-
-
-def ok(message: str) -> None:
-	print(f"{TCOLOR.OKGREEN}{message}{TCOLOR.ENDC}")
-
-def debug(message: str) -> None:
-	print(f"{TCOLOR.HEADER}DEBUG:\n{message}{TCOLOR.ENDC}")
-
-
-class TCOLOR:
-	HEADER = '\033[95m'
-	OKBLUE = '\033[94m'
-	OKGREEN = '\033[92m'
-	WARNING = '\033[93m'
-	FAIL = '\033[91m'
-	ENDC = '\033[0m'
-	BOLD = '\033[1m'
-	UNDERLINE = '\033[4m'
-
-
-class MD(IntEnum):
-	HEADING = 0
-	HEADING1 = 1 # these are probably not neccessary since we know the begin and end points
-	HEADING2 = 2 # these are probably not neccessary since we know the begin and end points
-	HEADING3 = 3 # these are probably not neccessary since we know the begin and end points
-	HEADING4 = 4 # these are probably not neccessary since we know the begin and end points
-	HEADING5 = 5 # these are probably not neccessary since we know the begin and end points
-	HEADING6 = 6 # these are probably not neccessary since we know the begin and end points
-	BOLD = 7
-	ITALIC = 8
-	UNDERLINE = 9
-	STRIKE = 10
-	BLOCKQUOTE = 11
-	CODE = 12
-	ULIST = 13
-	OLIST = 14
-	CHECKED = 15
-	UNCHECKED = 16
-	IMAGE = 17
-	LINK = 18
-	HTML = 19
-
-	NEWLINE = 20
-	TAB = 21
-	SPACE = 22
-	TEXT = 23
-	ERROR = 24
-
-	CODE_BEGIN = 25
-	CODE_END = 26
-
-	BOLD_BEGIN = 27
-	BOLD_END = 28
-
-	UNDERLINE_BEGIN = 29
-	UNDERLINE_END = 30
-
-	ITALIC_BEGIN = 31
-	ITALIC_END = 32
-
-	HORIZONTAL_RULE = 33
-
-	ULIST_BEGIN = 34
-	ULIST_END = 35
-
-
-class Token:
-
-	def __init__(self, id: MD_ENUM, begin: int = None, end: int = None) -> None:
-		self.id = id
-		self.begin = begin
-		self.end = end
-		#self.content = content
-
-	
-	def __str__(self) -> str:
-		return f"\nToken:\n\tid:{self.id}\n\tbegin:{self.begin}\n\tend:{self.end}\n"
-
-
-	def __repr__(self) -> str:
-		return self.__str__()
-
-
-class ListToken(Token):
-
-	def __init__(self, id: MD_ENUM, begin: int = None, end: int = None, indent: int = None) -> None:
-		super().__init__(id, begin, end)
-		self.indent = indent
-
-	
-	def __str__(self) -> str:
-		return f"\nListToken:\n\tid:{self.id}\n\tbegin:{self.begin}\n\tend:{self.end}\n\tindent:{self.indent}\n"
-
-
-	def __repr__(self) -> str:
-		return self.__str__()
-
-
-def lex(text: str) -> List[Token]:
+def lex(text: str) -> List[TToken]:
 	if os.path.exists(text):
 		text = open(text, "r").read()
 
@@ -169,6 +68,8 @@ def lex(text: str) -> List[Token]:
 				tokens.append(Token(MD.ITALIC_END, i, i + 1))
 			else:
 				tokens.append(Token(MD.ITALIC, i, i + 1))
+		elif listBlock:
+			listBlock = False
 		elif char == "\n":
 			tokens.append(Token(MD.NEWLINE, i, i + 1))
 		elif char == " ":
@@ -225,7 +126,6 @@ def lex(text: str) -> List[Token]:
 				tokens.append(Token(MD.ITALIC_BEGIN, i, i + 1))
 				italic = True
 			elif nextC == " ":
-				listBlock = True
 				indent = 0
 				if text[i - 1] == "\n":
 					indent = 0
@@ -247,6 +147,7 @@ def lex(text: str) -> List[Token]:
 				else:
 					tokens.append(ListToken(MD.ULIST_BEGIN, i, i + 1, 0))
 					lCount = 1
+					listBlock = True
 			else:
 				tokens.append(Token(MD.ERROR, i, i + 1))
 				fail(f"Line: {line}, Index: {i} -> UNRECOGNIZED SYMBOL! * ")

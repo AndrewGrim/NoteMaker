@@ -10,6 +10,9 @@ import wx.stc as stc
 from ParseMarkdown import parse
 from Lexer import *
 from Styles import *
+from TokenTypes import *
+from Tokens import *
+from Debug import *
 
 class Application(wx.Frame):
 
@@ -117,7 +120,7 @@ class Application(wx.Frame):
 				self.edit.StartStyling(begin, 0xff)
 				self.edit.SetStyling(len(key), 6)"""
 		end = time.time()
-		ok(f"Lex and highlight time: {round(end - start, 2)}")
+		info(f"Lex and highlight time: {round(end - start, 2)}")
 		event.Skip()
 
 
@@ -270,5 +273,5 @@ if __name__ == '__main__':
 	app = wx.App()
 	frm = Application(None)
 	end = time.time()
-	ok(f"Application load time: {round(end - start, 2)}s")
+	info(f"Application load time: {round(end - start, 2)}s")
 	app.MainLoop()
