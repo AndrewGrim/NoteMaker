@@ -1,6 +1,7 @@
 import time
 import os
 import subprocess
+import  keyword
 
 import wx
 import wx.html2 as webview
@@ -67,6 +68,7 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(3, "fore:#00FF00,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(4, "fore:#b8bb26,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(5, "fore:#81ac71,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(6, "fore:#ff00ff,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.IndicatorSetStyle(0, stc.STC_INDIC_SQUIGGLE)
 		self.edit.IndicatorSetForeground(0, wx.RED)
 		#start = self.edit.FindText(0, self.edit.GetLength(), "<")
@@ -75,10 +77,11 @@ class Application(wx.Frame):
 		start = time.time()
 		tokens = lex(self.edit.GetValue()) 
 		error = False
+		keywords = (" ".join(keyword.kwlist) + " self").split()
 		for i, t in enumerate(tokens):
 			#if i == 20:
 			#	break
-			#ebug(str(t))
+			#debug(str(t))
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:
 				if t.id == MD.ERROR:
@@ -86,9 +89,9 @@ class Application(wx.Frame):
 					error = True
 				elif t.id == MD.HEADING:
 					self.edit.SetStyling(t.end - t.begin, 1)
-				elif t.id == MD.SPACE or t.id == MD.TAB or t.id == MD.NEWLINE:
+				elif t.id in [MD.SPACE, MD.TAB, MD.NEWLINE]:
 					self.edit.SetStyling(t.end - t.begin, 3)
-				elif t.id == MD.CODE:
+				elif t.id in [MD.CODE, MD.CODE_BEGIN, MD.CODE_END]:
 					self.edit.SetStyling(t.end - t.begin, 4)
 				elif t.id == MD.BLOCKQUOTE:
 					self.edit.SetStyling(t.end - t.begin, 5)
@@ -96,6 +99,25 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, 0)
 			elif t.id == MD.NEWLINE:
 				error = False
+
+		# Doesnt work all that well
+		# most of the keywords do get highlighted but not all of them
+		# initially i though this was because i had a ` in my code which would disable the highlight
+		# but this doesnt seem to be the case	
+		"""codeBegin = -1
+		codeEnd = -1
+		for i, t in enumerate(tokens):
+			if t.id == MD.CODE_BEGIN:
+				codeBegin = i
+			elif t.id == MD.CODE_END:
+				codeEnd = i
+		print("code: ", codeBegin)
+		print("len: ", self.edit.GetLength())
+		for key in keywords:
+			begin = self.edit.FindText(codeBegin, codeEnd, key)
+			if begin != -1:
+				self.edit.StartStyling(begin, 0xff)
+				self.edit.SetStyling(len(key), 6)"""
 		end = time.time()
 		ok(f"Lex and highlight time: {round(end - start, 2)}")
 		event.Skip()
