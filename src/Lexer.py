@@ -79,6 +79,9 @@ class MD(IntEnum):
 
 	HORIZONTAL_RULE = 33
 
+	ULIST_BEGIN = 34
+	ULIST_END = 35
+
 
 class Token:
 
@@ -91,6 +94,21 @@ class Token:
 	
 	def __str__(self) -> str:
 		return f"\nToken:\n\tid:{self.id}\n\tbegin:{self.begin}\n\tend:{self.end}\n"
+
+
+	def __repr__(self) -> str:
+		return self.__str__()
+
+
+class ListToken(Token):
+
+	def __init__(self, id: MD_ENUM, begin: int = None, end: int = None, indent: int = None) -> None:
+		super().__init__(id, begin, end)
+		self.indent = indent
+
+	
+	def __str__(self) -> str:
+		return f"\nListToken:\n\tid:{self.id}\n\tbegin:{self.begin}\n\tend:{self.end}\n\tindent:{self.indent}\n"
 
 
 	def __repr__(self) -> str:
@@ -114,7 +132,7 @@ def lex(text: str) -> List[Token]:
 	lCount = 0
 	indent = 0
 	lastOffset = 0
-	innerList = False
+	listBlock = False
 	check = False
 	html = False
 	bold = False
@@ -206,6 +224,24 @@ def lex(text: str) -> List[Token]:
 			elif nextC.isalnum():
 				tokens.append(Token(MD.ITALIC_BEGIN, i, i + 1))
 				italic = True
+			elif nextC == " ":
+				listBlock = True
+				indent = 0
+				if text[i - 1] == "\n":
+					indent = 0
+				else:
+					index = 2
+					while True:
+						if text[i - index] == "\n":
+							indent = index - 1
+							break
+						elif text[i - index] in [" ", "\t"]:
+							index += 1
+						else:
+							fail(f"Line: {line}, Index: {i} -> COULD NOT FIND INDENTATION OR NEWLINE!")
+							break
+				tokens.append(ListToken(MD.ULIST_BEGIN, i, i + 1, 0))
+				lCount = 1
 			else:
 				tokens.append(Token(MD.ERROR, i, i + 1))
 				fail(f"Line: {line}, Index: {i} -> UNRECOGNIZED SYMBOL! * ")
@@ -217,6 +253,7 @@ def lex(text: str) -> List[Token]:
 					tokens.append(Token(MD.HORIZONTAL_RULE, i, i + 3))
 					i += 2
 			else:
+				tokens.append(Token(MD.ERROR, i, i + 1))
 				fail(f"Line: {line}, Index: {i} -> UNRECOGNIZED SYMBOL! - ")
 		else:
 			tokens.append(Token(MD.TEXT, i, i + 1))
@@ -229,7 +266,7 @@ if __name__ == "__main__":
 	if len(args) == 2:
 		print(lex(args[1]))
 	elif len(args) == 1:
-		print("You need to specify the file to lex!")
+		print("You need to specify the text to lex!")
 		print("""
 	Usage:
 		Lexer <file.md> or

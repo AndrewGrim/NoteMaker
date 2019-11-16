@@ -91,6 +91,8 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.ITALIC)
 				elif t.id == MD.HORIZONTAL_RULE:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
+				elif t.id == MD.ULIST_BEGIN:
+					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				else:
 					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
 			elif t.id == MD.NEWLINE:
