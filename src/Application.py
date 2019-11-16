@@ -69,6 +69,7 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(4, "fore:#b8bb26,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(5, "fore:#81ac71,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(6, "fore:#ff00ff,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(7, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.IndicatorSetStyle(0, stc.STC_INDIC_SQUIGGLE)
 		self.edit.IndicatorSetForeground(0, wx.RED)
 		#start = self.edit.FindText(0, self.edit.GetLength(), "<")
@@ -95,6 +96,8 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, 4)
 				elif t.id == MD.BLOCKQUOTE:
 					self.edit.SetStyling(t.end - t.begin, 5)
+				elif t.id == MD.STRIKE:
+					self.edit.SetStyling(t.end - t.begin, 7)
 				else:
 					self.edit.SetStyling(t.end - t.begin, 0)
 			elif t.id == MD.NEWLINE:

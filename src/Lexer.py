@@ -128,13 +128,13 @@ def lex(text: str) -> List[Token]:
 					i -= 1
 					break
 				elif c == "\n":
-					warn(f"Line: {line}, Index: {i} -> Improperly formatted heading! You need a space after the #!")
+					warn(f"Line: {line}, Index: {i} -> Improperly formatted heading! You need a space after the # !")
 					tokens.append(Token(MD.ERROR, i - hCount, i))
 					break
 				elif c == "#":
 					hCount += 1
 					if hCount > 6:
-						warn(f"Line: {line}, Index: {i} -> Too many #! You can only use up to 6 #!")
+						warn(f"Line: {line}, Index: {i} -> Too many #! You can only use up to 6 # !")
 						tokens.append(Token(MD.ERROR, (i - hCount) + 1, i + 1))
 				i += 1
 			tokens.append(Token(MD.HEADING, (i + 1) - hCount, i + 1))
@@ -143,6 +143,14 @@ def lex(text: str) -> List[Token]:
 			code = True
 		elif char == ">":
 			tokens.append(Token(MD.BLOCKQUOTE, i, i + 1))
+		elif char == "~":
+			nextC = text[i + 1]
+			if nextC == "~":
+				tokens.append(Token(MD.STRIKE, i, i + 2))
+				i += 1
+			else:
+				tokens.append(Token(MD.ERROR, i, i + 1))
+				warn(f"Line: {line}, Index: {i} -> Improperly formatted strikethrough! Missing ~ !")
 		else:
 			tokens.append(Token(MD.TEXT, i, i + 1))
 		i += 1
