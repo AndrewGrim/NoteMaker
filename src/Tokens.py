@@ -17,7 +17,7 @@ class Token:
 
 
 	def __repr__(self) -> str:
-		return self.__str__()
+		return f"{self.__dict__!r}"
 
 
 class ListToken(Token):
@@ -32,4 +32,4 @@ class ListToken(Token):
 
 
 	def __repr__(self) -> str:
-		return self.__str__()
+		return f"{self.__dict__!r}"
