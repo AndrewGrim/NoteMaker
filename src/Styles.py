@@ -10,6 +10,7 @@ class STYLE(IntEnum):
 	STRIKE = 7
 	BOLD = 8
 	UNDERLINE = 9
+	SYMBOL = 10
 
 class INDICATOR(IntEnum):
 	ERROR = 32

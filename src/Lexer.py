@@ -68,6 +68,12 @@ class MD(IntEnum):
 	CODE_BEGIN = 25
 	CODE_END = 26
 
+	BOLD_BEGIN = 27
+	BOLD_END = 28
+
+	UNDERLINE_BEGIN = 29
+	UNDERLINE_END = 30
+
 
 class Token:
 
@@ -103,6 +109,8 @@ def lex(text: str) -> List[Token]:
 	innerList = False
 	check = False
 	html = False
+	bold = False
+	underline = False
 	while i < len(text):
 		char = text[i]
 		if char == "\n":
@@ -114,6 +122,20 @@ def lex(text: str) -> List[Token]:
 				tokens.append(Token(MD.CODE_END, i, i + 1))
 			else:
 				tokens.append(Token(MD.CODE, i, i + 1))
+		elif bold:
+			if char == "*":
+				bold = False
+				tokens.append(Token(MD.BOLD_END, i, i + 2))
+				i += 1
+			else:
+				tokens.append(Token(MD.BOLD, i, i + 1))
+		elif underline:
+			if char == "_":
+				underline = False
+				tokens.append(Token(MD.UNDERLINE_END, i, i + 2))
+				i += 1
+			else:
+				tokens.append(Token(MD.UNDERLINE, i, i + 1))
 		elif char == "\n":
 			tokens.append(Token(MD.NEWLINE, i, i + 1))
 		elif char == " ":
@@ -154,7 +176,8 @@ def lex(text: str) -> List[Token]:
 		elif char == "_":
 			nextC = text[i + 1]
 			if nextC == "_":
-				tokens.append(Token(MD.UNDERLINE, i, i + 2))
+				tokens.append(Token(MD.UNDERLINE_BEGIN, i, i + 2))
+				underline = True
 				i += 1
 			else:
 				tokens.append(Token(MD.ERROR, i, i + 1))
@@ -162,7 +185,8 @@ def lex(text: str) -> List[Token]:
 		elif char == "*":
 			nextC = text[i + 1]
 			if nextC == "*":
-				tokens.append(Token(MD.BOLD, i, i + 2))
+				tokens.append(Token(MD.BOLD_BEGIN, i, i + 2))
+				bold = True
 				i += 1
 			else:
 				tokens.append(Token(MD.ERROR, i, i + 1))

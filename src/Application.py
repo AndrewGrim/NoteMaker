@@ -74,11 +74,15 @@ class Application(wx.Frame):
 				elif t.id in [MD.CODE, MD.CODE_BEGIN, MD.CODE_END]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.CODE)
 				elif t.id == MD.BLOCKQUOTE:
-					self.edit.SetStyling(t.end - t.begin, STYLE.BLOCKQUOTE)
+					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id == MD.STRIKE:
 					self.edit.SetStyling(t.end - t.begin, STYLE.STRIKE)
+				elif t.id in [MD.BOLD_BEGIN, MD.BOLD_END]:
+					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id == MD.BOLD:
 					self.edit.SetStyling(t.end - t.begin, STYLE.BOLD)
+				elif t.id in [MD.UNDERLINE_BEGIN, MD.UNDERLINE_END]:
+					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id == MD.UNDERLINE:
 					self.edit.SetStyling(t.end - t.begin, STYLE.UNDERLINE)
 				else:
@@ -193,6 +197,7 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(5, "fore:#81ac71,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(6, "fore:#ff00ff,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(7, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(10, "fore:#81ac71,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		# maybe have additional styles for the inside which is bold/underlined
 		# and maybe lex these same way that i do code?
 		self.edit.StyleSetSpec(8, "fore:#d9a62e,bold,size:%(size)d" % faces)
