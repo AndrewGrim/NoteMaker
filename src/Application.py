@@ -27,7 +27,7 @@ class Application(wx.Frame):
 		self.edit.SetWrapMode(stc.STC_WRAP_WORD)
 		self.edit.SetViewWhiteSpace(True)
 		self.edit.SetViewEOL(True)
-		self.edit.Bind(stc.EVT_STC_UPDATEUI, self.onUpdateUI)
+		self.edit.Bind(wx.EVT_KEY_UP, self.onKeyUp)
 		#self.setColors()
 
 		sizer.Add(self.edit, 4, wx.EXPAND)
@@ -44,10 +44,11 @@ class Application(wx.Frame):
 		self.SetSize((1280, 720))
 		self.Center()
 		self.SetTitle("NoteMaker")
+		self.onKeyUp(wx.KeyEvent(wx.wxEVT_NULL))
 		self.Show()
 		
 
-	def onUpdateUI(self, event):
+	def onKeyUp(self, event):
 		faces = {
 			'times': 'Times New Roman',
 			'mono' : 'Courier New',
@@ -91,6 +92,7 @@ class Application(wx.Frame):
 				error = False
 		end = time.time()
 		ok(f"Lex and highlight time: {round(end - start, 2)}")
+		event.Skip()
 
 
 	def makeMenuBar(self):
