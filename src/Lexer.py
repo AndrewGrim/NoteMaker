@@ -119,14 +119,15 @@ def lex(text: str) -> List[Token]:
 					i -= 1
 					break
 				elif c == "\n":
-					warn(f"Line: {line}, Index: {i} -> Improperly formatted heading!")
+					warn(f"Line: {line}, Index: {i} -> Improperly formatted heading! You need a space after the #!")
 					tokens.append(Token(MD.ERROR, i - hCount, i))
 					break
-				else:
+				elif c == "#":
 					hCount += 1
+					if hCount > 6:
+						warn(f"Line: {line}, Index: {i} -> Too many #! You can only use up to 6 #!")
+						tokens.append(Token(MD.ERROR, (i - hCount) + 1, i + 1))
 				i += 1
-			#assert hCount < 7, fail(f"Line: {line}, Index: {i} -> Heading number is too high!")
-			# we could use this for a test, cause we dont want a crash on improper formatting
 			tokens.append(Token(MD.HEADING, (i + 1) - hCount, i + 1))
 		elif char == "`":
 			tokens.append(Token(MD.CODE, i, i + 1))
