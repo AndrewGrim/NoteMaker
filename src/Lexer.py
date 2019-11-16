@@ -65,6 +65,9 @@ class MD(Enum):
 	TEXT = 23
 	ERROR = 24
 
+	CODE_BEGIN = 25
+	CODE_END = 26
+
 
 class Token:
 
@@ -108,7 +111,9 @@ def lex(text: str) -> List[Token]:
 		if code:
 			if char == "`":
 				code = False
-			tokens.append(Token(MD.CODE, i, i + 1))
+				tokens.append(Token(MD.CODE_END, i, i + 1))
+			else:
+				tokens.append(Token(MD.CODE, i, i + 1))
 		elif char == "\n":
 			tokens.append(Token(MD.NEWLINE, i, i + 1))
 		elif char == " ":
@@ -134,7 +139,7 @@ def lex(text: str) -> List[Token]:
 				i += 1
 			tokens.append(Token(MD.HEADING, (i + 1) - hCount, i + 1))
 		elif char == "`":
-			tokens.append(Token(MD.CODE, i, i + 1))
+			tokens.append(Token(MD.CODE_BEGIN, i, i + 1))
 			code = True
 		elif char == ">":
 			tokens.append(Token(MD.BLOCKQUOTE, i, i + 1))
