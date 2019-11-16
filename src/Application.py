@@ -58,8 +58,8 @@ class Application(wx.Frame):
 		}
 		self.edit.StyleSetSpec(stc.STC_STYLE_DEFAULT, "back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleClearAll()
+		self.edit.StyleSetSpec(0, "fore:#d5c4a1,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(1, "fore:#EFCD1E,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(2, "fore:#d5c4a1,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(3, "fore:#00FF00,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(4, "fore:#b8bb26,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.IndicatorSetStyle(0, stc.STC_INDIC_SQUIGGLE)
@@ -77,7 +77,7 @@ class Application(wx.Frame):
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:
 				if t.id == MD.ERROR:
-					self.edit.SetStyling(t.end - t.begin, stc.STC_INDIC0_MASK | 2)
+					self.edit.SetStyling(t.end - t.begin, stc.STC_INDIC0_MASK | 0)
 					error = True
 				elif t.id == MD.HEADING:
 					self.edit.SetStyling(t.end - t.begin, 1)
@@ -86,7 +86,7 @@ class Application(wx.Frame):
 				elif t.id == MD.CODE:
 					self.edit.SetStyling(t.end - t.begin, 4)
 				else:
-					self.edit.SetStyling(t.end - t.begin, 2)
+					self.edit.SetStyling(t.end - t.begin, 0)
 			elif t.id == MD.NEWLINE:
 				error = False
 		end = time.time()
