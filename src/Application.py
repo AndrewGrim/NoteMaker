@@ -34,6 +34,9 @@ class Application(wx.Frame):
 		self.edit.SetCaretForeground("WHITE")
 		self.edit.SetBackgroundColour("WHITE")
 		self.edit.SetWhitespaceSize(2)
+		# TODO implement line and column in status bar, and line endings 
+		self.edit.SetTabWidth(4)
+		#self.edit.SetUseTabs(True) true by default make it an option
 		self.setupStyling()
 		self.edit.Bind(wx.EVT_KEY_UP, self.onKeyUp)
 		#self.setColors()
@@ -58,13 +61,13 @@ class Application(wx.Frame):
 
 	def onKeyUp(self, event):
 		start = time.time()
-		tokens = lex(self.edit.GetValue()) 
+		tokens = lex(self.edit.GetValue())
 		error = False
 		keywords = (" ".join(keyword.kwlist) + " self").split()
 		for i, t in enumerate(tokens):
 			#if i == 20:
 			#	break
-			#debug(str(t))
+			#debug(t)
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:
 				if t.id == MD.ERROR:
@@ -94,7 +97,7 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.ITALIC)
 				elif t.id == MD.HORIZONTAL_RULE:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id == MD.ULIST_BEGIN:
+				elif t.id == MD.ULIST_ITEM_BEGIN:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				else:
 					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
