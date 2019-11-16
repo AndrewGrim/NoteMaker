@@ -21,23 +21,19 @@ def lex(text: str) -> List[TToken]:
 	tokens = []
 
 	i = 0
-	lineEnd = ""
 	code = False
-	uList = False
-	oList = False
 	line = 0
-	lastC = ""
-	li = False
-	lCount = 0
-	indent = 0
-	lastOffset = 0
-	listBlock = False
 	check = False
 	html = False
 	bold = False
 	underline = False
 	italic = False
+
+	lCount = 0
+	indent = 0
+	listBlock = False
 	listItem = False
+	listIndex = []
 	while i < len(text):
 		char = text[i]
 		if char == "\n":
@@ -75,16 +71,19 @@ def lex(text: str) -> List[TToken]:
 			except IndexError:
 				text += "\n"
 			if char == "\n" and text[i + 1] == "\n":
-				for num in range(lCount):
-					tokens.append(ListToken(MD.ULIST_END, i - 1, i, indent))
+				for l in listIndex.__reversed__():
+					if len(listIndex) == 1:
+						tokens.append(ListToken(MD.LIST_ITEM_END, i - 1, i, indent))
+					tokens.append(ListToken(l, i - 1, i, indent))
+					del listIndex[-1]
 					lCount -= 1
-				tokens.append(Token(MD.NEWLINE, i, i + 1))
+				listIndex = []
 				listBlock = False
 				listItem = False
 				assert lCount == 0, fail(f"lCount should be 0 instead is {lCount}!")
 			elif char == "\n":
 				listItem = False
-				tokens.append(ListToken(MD.ULIST_ITEM_END, i, i + 1, indent))
+				tokens.append(ListToken(MD.LIST_ITEM_END, i, i + 1, indent))
 			elif char == "*":
 				nextC = text[i + 1]
 				if nextC == " ":
@@ -102,38 +101,111 @@ def lex(text: str) -> List[TToken]:
 							else:
 								tokens.append(Token(MD.ERROR, i, i + 1))
 								warn(f"Line: {line}, Index: {i} -> Improper list formatting! Could not find whitespace or newline!")
-								break
+								break	
 					if text[i - 1].isalnum():
 						tokens.append(Token(MD.ERROR, i - 1, i))
 						warn(f"Line: {line}, Index: {i} -> Improper list formatting! Could not find whitespace or newline!")
 					else:
 						for t in tokens.__reversed__():
-							if t.id in [MD.ULIST_BEGIN, MD.ULIST_ITEM_BEGIN]: # prob can compare only against item_begin
+							if t.id == MD.LIST_ITEM_BEGIN:
 								if t.indent == indent:
-									tokens.append(ListToken(MD.ULIST_ITEM_BEGIN, i, i + 1, indent))
+									tokens.append(ListToken(MD.LIST_ITEM_BEGIN, i, i + 1, indent))
 									i += 1
 									tokens.append(Token(MD.SPACE, i, i + 1))
 									listItem = True
 									break
 								elif t.indent < indent:
 									tokens.append(ListToken(MD.ULIST_BEGIN, i, i + 1, indent))
+									listIndex.append(MD.ULIST_END)
 									lCount += 1
-									tokens.append(ListToken(MD.ULIST_ITEM_BEGIN, i, i + 1, indent))
+									tokens.append(ListToken(MD.LIST_ITEM_BEGIN, i, i + 1, indent))
 									i += 1
 									tokens.append(Token(MD.SPACE, i, i + 1))
 									listItem = True
 									break
 								elif t.indent > indent:
-									for num in range(lCount - 1):
-										tokens.append(ListToken(MD.ULIST_END, i, i + 1, indent))
+									diff = t.indent - indent + 1
+									for num in range(1, diff):
+										l = listIndex[num * -1]
+										if l == MD.OLIST_END:
+											tokens.append(ListToken(listIndex[num * -1], i, i + 2, indent))
+										else:
+											tokens.append(ListToken(listIndex[num * -1], i, i + 1, indent))
+									for num in range(diff, 1, -1):
+										del listIndex[num * -1]	
 										lCount -= 1
-									tokens.append(ListToken(MD.ULIST_ITEM_BEGIN, i, i + 1, indent))
+									tokens.append(ListToken(MD.LIST_ITEM_BEGIN, i, i + 1, indent))
 									i += 1
 									tokens.append(Token(MD.SPACE, i, i + 1))
 									listItem = True
 									break
+			elif char.isnumeric() and not text[i - 1].isalnum():
+				nextC = text[i + 1]
+				if nextC == ".":
+					c = text[i + 2]
+					if c == " ":
+						indent = 0
+						if text[i - 1] == "\n" or i == 0:
+							indent = 0
+						else:
+							index = 2
+							while True:
+								if text[i - index] == "\n":
+									indent = index - 1
+									break
+								elif text[i - index] in [" ", "\t"]:
+									index += 1
+								else:
+									tokens.append(Token(MD.ERROR, i, i + 1))
+									warn(f"Line: {line}, Index: {i} -> Improper list formatting! Could not find whitespace or newline!")
+									break
+						if text[i - 1].isalnum() and i != 0:
+							tokens.append(Token(MD.ERROR, i - 1, i))
+							warn(f"Line: {line}, Index: {i} -> Improper list formatting! Could not find whitespace or newline!")
+						else:
+							for t in tokens.__reversed__():
+								if t.id == MD.LIST_ITEM_BEGIN: 
+									if t.indent == indent:
+										tokens.append(ListToken(MD.LIST_ITEM_BEGIN, i, i + 2, indent))
+										i += 2
+										tokens.append(Token(MD.SPACE, i, i + 1))
+										listItem = True
+										break
+									elif t.indent < indent:
+										tokens.append(ListToken(MD.OLIST_BEGIN, i, i + 2, indent))
+										listIndex.append(MD.OLIST_END)
+										lCount += 1
+										tokens.append(ListToken(MD.LIST_ITEM_BEGIN, i, i + 2, indent))
+										i += 2
+										tokens.append(Token(MD.SPACE, i, i + 1))
+										listItem = True
+										break
+									elif t.indent > indent:
+										diff = t.indent - indent + 1
+										for num in range(1, diff):
+											l = listIndex[num * -1]
+											if l == MD.OLIST_END:
+												tokens.append(ListToken(listIndex[num * -1], i, i + 2, indent))
+											else:
+												tokens.append(ListToken(listIndex[num * -1], i, i + 1, indent))
+										for num in range(diff, 1, -1):
+											del listIndex[num * -1]	
+											lCount -= 1
+										tokens.append(ListToken(MD.LIST_ITEM_BEGIN, i, i + 2, indent))
+										i += 2
+										tokens.append(Token(MD.SPACE, i, i + 1))
+										listItem = True
+										break
+					else:
+						tokens.append(Token(MD.ERROR, i, i + 1))
+						warn(f"Line: {line}, Index: {i} -> Improper list formatting! You need a space after the 1. !")
+				else:
+					pass
+					#tokens.append(Token(MD.ERROR, i, i + 1))
+					#warn(f"Line: {line}, Index: {i} -> Improper list formatting! You need a . after the number!")
+
 			if listItem:
-				tokens.append(ListToken(MD.ULIST_ITEM_TEXT, i, i + 1, indent))
+				tokens.append(ListToken(MD.LIST_ITEM_TEXT, i, i + 1, indent))
 			elif char == " ":
 				tokens.append(Token(MD.SPACE, i, i + 1))
 			elif char == "\t":
@@ -219,15 +291,54 @@ def lex(text: str) -> List[TToken]:
 					warn(f"Line: {line}, Index: {i} -> Improper list formatting! Could not find whitespace or newline!")
 				else:
 					tokens.append(ListToken(MD.ULIST_BEGIN, i, i + 1, indent))
-					tokens.append(ListToken(MD.ULIST_ITEM_BEGIN, i, i + 1, indent))
+					tokens.append(ListToken(MD.LIST_ITEM_BEGIN, i, i + 1, indent))
 					i += 1
 					tokens.append(Token(MD.SPACE, i, i + 1))
 					lCount = 1
 					listBlock = True
 					listItem = True
+					listIndex.append(MD.ULIST_END)
 			else:
 				tokens.append(Token(MD.ERROR, i, i + 1))
-				fail(f"Line: {line}, Index: {i} -> UNRECOGNIZED SYMBOL! * ")
+				warn(f"Line: {line}, Index: {i} -> Unexpected symbol! '{nextC}' ")
+		elif char.isnumeric() and not text[i - 1].isalnum():
+			nextC = text[i + 1]
+			if nextC == ".":
+				c = text[i + 2]
+				if c == " ":
+					indent = 0
+					if text[i - 1] == "\n" or i == 0:
+						indent = 0
+					else:
+						index = 2
+						while True:
+							if text[i - index] == "\n":
+								indent = index - 1
+								break
+							elif text[i - index] in [" ", "\t"]:
+								index += 1
+							else:
+								tokens.append(Token(MD.ERROR, i, i + 1))
+								warn(f"Line: {line}, Index: {i} -> Improper list formatting! Could not find whitespace or newline!")
+								break
+					if text[i - 1].isalnum() and i != 0:
+						tokens.append(Token(MD.ERROR, i - 1, i))
+						warn(f"Line: {line}, Index: {i} -> Improper list formatting! Could not find whitespace or newline!")
+					else:
+						tokens.append(ListToken(MD.OLIST_BEGIN, i, i + 2, indent))
+						tokens.append(ListToken(MD.LIST_ITEM_BEGIN, i, i + 2, indent))
+						i += 2
+						tokens.append(Token(MD.SPACE, i, i + 1))
+						lCount = 1
+						listBlock = True
+						listItem = True
+						listIndex.append(MD.OLIST_END)
+				else:
+					tokens.append(Token(MD.ERROR, i, i + 1))
+					warn(f"Line: {line}, Index: {i} -> Improper list formatting! You need a space after the 1. !")
+			else:
+				tokens.append(Token(MD.ERROR, i, i + 1))
+				warn(f"Line: {line}, Index: {i} -> Improper list formatting! You need a . after the number!")
 		elif char == "-":
 			nextC = text[i + 1]
 			if nextC == "-":

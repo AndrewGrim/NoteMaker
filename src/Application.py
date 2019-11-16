@@ -67,7 +67,7 @@ class Application(wx.Frame):
 		for i, t in enumerate(tokens):
 			#if i == 20:
 			#	break
-			#debug(t)
+			debug(t)
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:
 				if t.id == MD.ERROR:
@@ -97,7 +97,7 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.ITALIC)
 				elif t.id == MD.HORIZONTAL_RULE:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id == MD.ULIST_ITEM_BEGIN:
+				elif t.id == MD.LIST_ITEM_BEGIN:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				else:
 					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
