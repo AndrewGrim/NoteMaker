@@ -47,7 +47,7 @@ class MD(IntEnum):
 	HEADING6 = 6 # these are probably not neccessary since we know the begin and end points
 	BOLD = 7
 	ITALIC = 8
-	UNDER = 9
+	UNDERLINE = 9
 	STRIKE = 10
 	BLOCKQUOTE = 11
 	CODE = 12
@@ -151,6 +151,22 @@ def lex(text: str) -> List[Token]:
 			else:
 				tokens.append(Token(MD.ERROR, i, i + 1))
 				warn(f"Line: {line}, Index: {i} -> Improperly formatted strikethrough! Missing ~ !")
+		elif char == "_":
+			nextC = text[i + 1]
+			if nextC == "_":
+				tokens.append(Token(MD.UNDERLINE, i, i + 2))
+				i += 1
+			else:
+				tokens.append(Token(MD.ERROR, i, i + 1))
+				warn(f"Line: {line}, Index: {i} -> Improperly formatted underline! Missing _ !")
+		elif char == "*":
+			nextC = text[i + 1]
+			if nextC == "*":
+				tokens.append(Token(MD.BOLD, i, i + 2))
+				i += 1
+			else:
+				tokens.append(Token(MD.ERROR, i, i + 1))
+				warn(f"Line: {line}, Index: {i} -> Improperly formatted bold! Missing * !")
 		else:
 			tokens.append(Token(MD.TEXT, i, i + 1))
 		i += 1

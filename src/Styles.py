@@ -8,6 +8,8 @@ class STYLE(IntEnum):
 	BLOCKQUOTE = 5
 	TEST = 6
 	STRIKE = 7
+	BOLD = 8
+	UNDERLINE = 9
 
 class INDICATOR(IntEnum):
 	ERROR = 32
