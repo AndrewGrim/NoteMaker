@@ -98,6 +98,9 @@ class Token:
 
 
 def lex(text: str) -> List[Token]:
+	if os.path.exists(text):
+		text = open(text, "r").read()
+
 	tokens = []
 
 	i = 0
@@ -222,4 +225,15 @@ def lex(text: str) -> List[Token]:
 	return tokens
 
 if __name__ == "__main__":
-	print(lex())
+	args = sys.argv
+	if len(args) == 2:
+		print(lex(args[1]))
+	elif len(args) == 1:
+		print("You need to specify the file to lex!")
+		print("""
+	Usage:
+		Lexer <file.md> or
+		Lexer <string>
+	""")
+	else:
+		print("The program only supports one argument atm!")
