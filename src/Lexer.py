@@ -238,10 +238,15 @@ def lex(text: str) -> List[Token]:
 						elif text[i - index] in [" ", "\t"]:
 							index += 1
 						else:
-							fail(f"Line: {line}, Index: {i} -> COULD NOT FIND INDENTATION OR NEWLINE!")
+							tokens.append(Token(MD.ERROR, i, i + 1))
+							warn(f"Line: {line}, Index: {i} -> Improper list formatting! Could not find whitespace or newline!")
 							break
-				tokens.append(ListToken(MD.ULIST_BEGIN, i, i + 1, 0))
-				lCount = 1
+				if text[i - 1].isalnum():
+					tokens.append(Token(MD.ERROR, i - 1, i))
+					warn(f"Line: {line}, Index: {i} -> Improper list formatting! Could not find whitespace or newline!")
+				else:
+					tokens.append(ListToken(MD.ULIST_BEGIN, i, i + 1, 0))
+					lCount = 1
 			else:
 				tokens.append(Token(MD.ERROR, i, i + 1))
 				fail(f"Line: {line}, Index: {i} -> UNRECOGNIZED SYMBOL! * ")
