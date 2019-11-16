@@ -25,8 +25,10 @@ class Application(wx.Frame):
 		self.edit.SetMarginType(1, stc.STC_MARGIN_NUMBER)
 		self.edit.SetMarginWidth(1, 30)
 		self.edit.SetWrapMode(stc.STC_WRAP_WORD)
-		self.edit.SetViewWhiteSpace(True)
-		self.edit.SetViewEOL(True)
+		self.edit.SetSelBackground(True, "#384539")
+		self.edit.SetCaretForeground("WHITE")
+		self.edit.SetBackgroundColour("WHITE")
+		self.edit.SetWhitespaceSize(2)
 		self.edit.Bind(wx.EVT_KEY_UP, self.onKeyUp)
 		#self.setColors()
 
@@ -59,10 +61,12 @@ class Application(wx.Frame):
 		}
 		self.edit.StyleSetSpec(stc.STC_STYLE_DEFAULT, "back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleClearAll()
+		self.edit.StyleSetSpec(stc.STC_STYLE_LINENUMBER,  "fore:#928374,back:#212121,face:%(mono)s,size:%(size2)d" % faces)
 		self.edit.StyleSetSpec(0, "fore:#d5c4a1,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(1, "fore:#EFCD1E,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(3, "fore:#00FF00,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(4, "fore:#b8bb26,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(5, "fore:#81ac71,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.IndicatorSetStyle(0, stc.STC_INDIC_SQUIGGLE)
 		self.edit.IndicatorSetForeground(0, wx.RED)
 		#start = self.edit.FindText(0, self.edit.GetLength(), "<")
@@ -86,6 +90,8 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, 3)
 				elif t.id == MD.CODE:
 					self.edit.SetStyling(t.end - t.begin, 4)
+				elif t.id == MD.BLOCKQUOTE:
+					self.edit.SetStyling(t.end - t.begin, 5)
 				else:
 					self.edit.SetStyling(t.end - t.begin, 0)
 			elif t.id == MD.NEWLINE:
@@ -100,6 +106,7 @@ class Application(wx.Frame):
 		saveItem = fileMenu.Append(-1, "&Save\tCtrl-S")
 		openItem = fileMenu.Append(-1, "&Open\tCtrl-O")
 		reloadItem = fileMenu.Append(-1, "&Reload\tCtrl-R")
+		hiddenItem = fileMenu.Append(-1, "&Show Hidden Symbols\tCtrl-D")
 		
 		menuBar = wx.MenuBar()
 		menuBar.Append(fileMenu, "&File")
@@ -109,6 +116,7 @@ class Application(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.onSave, saveItem)
 		self.Bind(wx.EVT_MENU, self.onOpen, openItem)
 		self.Bind(wx.EVT_MENU, self.onReload, reloadItem)
+		self.Bind(wx.EVT_MENU, self.onShowHidden, hiddenItem)
 
 
 	def onSave(self, event):
@@ -146,7 +154,15 @@ class Application(wx.Frame):
 	def onReload(self, event):
 		self.wv.Reload()
 		self.edit.SetFocus()
-		
+
+
+	def onShowHidden(self, event):
+		if self.edit.GetViewWhiteSpace() == 0:	
+			self.edit.SetViewWhiteSpace(True)
+			self.edit.SetViewEOL(True)
+		else:
+			self.edit.SetViewWhiteSpace(False)
+			self.edit.SetViewEOL(False)
 
 	def setColors(self):
 		# custom highlight link and html

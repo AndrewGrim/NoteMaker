@@ -105,7 +105,11 @@ def lex(text: str) -> List[Token]:
 		if char == "\n":
 			line += 1 # a rough approximation
 
-		if char == "\n":
+		if code:
+			if char == "`":
+				code = False
+			tokens.append(Token(MD.CODE, i, i + 1))
+		elif char == "\n":
 			tokens.append(Token(MD.NEWLINE, i, i + 1))
 		elif char == " ":
 			tokens.append(Token(MD.SPACE, i, i + 1))
@@ -131,6 +135,9 @@ def lex(text: str) -> List[Token]:
 			tokens.append(Token(MD.HEADING, (i + 1) - hCount, i + 1))
 		elif char == "`":
 			tokens.append(Token(MD.CODE, i, i + 1))
+			code = True
+		elif char == ">":
+			tokens.append(Token(MD.BLOCKQUOTE, i, i + 1))
 		else:
 			tokens.append(Token(MD.TEXT, i, i + 1))
 		i += 1
