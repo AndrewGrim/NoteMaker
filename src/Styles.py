@@ -5,12 +5,11 @@ class STYLE(IntEnum):
 	HEADING = 1
 	HIDDEN = 3
 	CODE = 4
-	BLOCKQUOTE = 5
+	SYMBOL = 5
 	TEST = 6
 	STRIKE = 7
 	BOLD = 8
 	UNDERLINE = 9
-	SYMBOL = 10
 	ITALIC = 11
 
 class INDICATOR(IntEnum):

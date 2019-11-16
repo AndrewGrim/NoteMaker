@@ -23,7 +23,7 @@ def ok(message: str) -> None:
 	print(f"{TCOLOR.OKGREEN}{message}{TCOLOR.ENDC}")
 
 def debug(message: str) -> None:
-	print(f"{TCOLOR.HEADER}DEBUG: {message}{TCOLOR.ENDC}")
+	print(f"{TCOLOR.HEADER}DEBUG:\n{message}{TCOLOR.ENDC}")
 
 
 class TCOLOR:
@@ -76,6 +76,8 @@ class MD(IntEnum):
 
 	ITALIC_BEGIN = 31
 	ITALIC_END = 32
+
+	HORIZONTAL_RULE = 33
 
 
 class Token:
@@ -203,7 +205,16 @@ def lex(text: str) -> List[Token]:
 				italic = True
 			else:
 				tokens.append(Token(MD.ERROR, i, i + 1))
-				warn(f"Line: {line}, Index: {i} -> Improperly formatted bold! Missing * !")
+				fail(f"Line: {line}, Index: {i} -> UNRECOGNIZED SYMBOL! * ")
+		elif char == "-":
+			nextC = text[i + 1]
+			if nextC == "-":
+				c = text[i + 2]
+				if c == "-":
+					tokens.append(Token(MD.HORIZONTAL_RULE, i, i + 3))
+					i += 2
+			else:
+				fail(f"Line: {line}, Index: {i} -> UNRECOGNIZED SYMBOL! - ")
 		else:
 			tokens.append(Token(MD.TEXT, i, i + 1))
 		i += 1
