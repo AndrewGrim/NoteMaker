@@ -27,6 +27,7 @@ class Application(wx.Frame):
 		self.edit.SetWrapMode(stc.STC_WRAP_WORD)
 		self.edit.SetViewWhiteSpace(True)
 		self.edit.SetViewEOL(True)
+		self.edit.Bind(stc.EVT_STC_UPDATEUI, self.onUpdateUI)
 		#self.setColors()
 
 		sizer.Add(self.edit, 4, wx.EXPAND)
@@ -44,14 +45,59 @@ class Application(wx.Frame):
 		self.Center()
 		self.SetTitle("NoteMaker")
 		self.Show()
-		self.onReload(None)
+		
+
+	def onUpdateUI(self, event):
+		faces = {
+			'times': 'Times New Roman',
+			'mono' : 'Courier New',
+			'helv' : 'Arial',
+			'other': 'Comic Sans MS',
+			'size' : 10,
+			'size2': 8,
+		}
+		self.edit.StyleSetSpec(stc.STC_STYLE_DEFAULT, "back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleClearAll()
+		self.edit.StyleSetSpec(1, "fore:#EFCD1E,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(2, "fore:#d5c4a1,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(3, "fore:#00FF00,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(4, "fore:#b8bb26,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.IndicatorSetStyle(0, stc.STC_INDIC_SQUIGGLE)
+		self.edit.IndicatorSetForeground(0, wx.RED)
+		#start = self.edit.FindText(0, self.edit.GetLength(), "<")
+		#end = self.edit.FindText(start, self.edit.GetLength(), ">")
+		#print(lex())
+		start = time.time()
+		tokens = lex(self.edit.GetValue()) 
+		error = False
+		for i, t in enumerate(tokens):
+			#if i == 20:
+			#	break
+			#ebug(str(t))
+			self.edit.StartStyling(t.begin, 0xff)
+			if not error:
+				if t.id == MD.ERROR:
+					self.edit.SetStyling(t.end - t.begin, stc.STC_INDIC0_MASK | 2)
+					error = True
+				elif t.id == MD.HEADING:
+					self.edit.SetStyling(t.end - t.begin, 1)
+				elif t.id == MD.SPACE or t.id == MD.TAB or t.id == MD.NEWLINE:
+					self.edit.SetStyling(t.end - t.begin, 3)
+				elif t.id == MD.CODE:
+					self.edit.SetStyling(t.end - t.begin, 4)
+				else:
+					self.edit.SetStyling(t.end - t.begin, 2)
+			elif t.id == MD.NEWLINE:
+				error = False
+		end = time.time()
+		ok(f"Lex and highlight time: {round(end - start, 2)}")
 
 
 	def makeMenuBar(self):
 		fileMenu = wx.Menu()
 		saveItem = fileMenu.Append(-1, "&Save\tCtrl-S")
-		openItem = fileMenu.Append(-1, "&Save\tCtrl-O")
-		reloadItem = fileMenu.Append(-1, "&Save\tCtrl-R")
+		openItem = fileMenu.Append(-1, "&Open\tCtrl-O")
+		reloadItem = fileMenu.Append(-1, "&Reload\tCtrl-R")
 		
 		menuBar = wx.MenuBar()
 		menuBar.Append(fileMenu, "&File")
@@ -96,45 +142,8 @@ class Application(wx.Frame):
 
 	
 	def onReload(self, event):
-		# TODO seems that if i want custom highlight for one thing ill need to do it my own way for the entire thing
-		faces = {
-			'times': 'Times New Roman',
-			'mono' : 'Courier New',
-			'helv' : 'Arial',
-			'other': 'Comic Sans MS',
-			'size' : 10,
-			'size2': 8,
-		}
-		self.edit.StyleSetSpec(stc.STC_STYLE_DEFAULT, "back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleClearAll()
-		self.edit.StyleSetSpec(1, "fore:#EFCD1E,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(2, "fore:#d5c4a1,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(3, "fore:#00FF00,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(4, "fore:#b8bb26,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		#start = self.edit.FindText(0, self.edit.GetLength(), "<")
-		#end = self.edit.FindText(start, self.edit.GetLength(), ">")
-		#print(lex())
-		start = time.time()
-		tokens = lex(self.edit.GetValue()) 
-		for i, t in enumerate(tokens):
-			#if i == 10:
-			#	break
-			#print(t)
-			self.edit.StartStyling(t.begin, 0xff)
-			if t.id == MD.HEADING:
-				self.edit.SetStyling(t.end - t.begin, 1)
-			elif t.id == MD.SPACE or t.id == MD.TAB or t.id == MD.NEWLINE:
-				self.edit.SetStyling(t.end - t.begin, 3)
-			elif t.id == MD.CODE:
-				self.edit.SetStyling(t.end - t.begin, 4)
-			else:
-				self.edit.SetStyling(t.end - t.begin, 2)
-		end = time.time()
-		ok(f"Lex and highlight time: {round(end - start, 2)}")
-		#print(start)
-		#print(end)
-		"""self.wv.Reload()
-		self.edit.SetFocus()"""
+		self.wv.Reload()
+		self.edit.SetFocus()
 		
 
 	def setColors(self):

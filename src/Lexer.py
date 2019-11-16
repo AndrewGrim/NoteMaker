@@ -12,18 +12,18 @@ MD_ENUM = NewType('MD_ENUM', int)
 Token = NewType('Token', None)
 
 def fail(message: str) -> None:
-	print(TCOLOR.FAIL + message + TCOLOR.ENDC)
+	print(f"{TCOLOR.FAIL}FAILURE! {message}{TCOLOR.ENDC}")
 
 
 def warn(message: str) -> None:
-	print(TCOLOR.WARNING + message + TCOLOR.ENDC)
+	print(f"{TCOLOR.WARNING}WARNING! {message}{TCOLOR.ENDC}")
 
 
 def ok(message: str) -> None:
-	print(TCOLOR.OKGREEN + message + TCOLOR.ENDC)
+	print(f"{TCOLOR.OKGREEN}{message}{TCOLOR.ENDC}")
 
 def debug(message: str) -> None:
-	print(TCOLOR.HEADER + message + TCOLOR.ENDC)
+	print(f"{TCOLOR.HEADER}DEBUG: {message}{TCOLOR.ENDC}")
 
 
 class TCOLOR:
@@ -63,6 +63,7 @@ class MD(Enum):
 	TAB = 21
 	SPACE = 22
 	TEXT = 23
+	ERROR = 24
 
 
 class Token:
@@ -119,11 +120,13 @@ def lex(text: str) -> List[Token]:
 					break
 				elif c == "\n":
 					warn(f"Line: {line}, Index: {i} -> Improperly formatted heading!")
+					tokens.append(Token(MD.ERROR, i - hCount, i))
 					break
 				else:
 					hCount += 1
 				i += 1
-			assert hCount < 7, fail(f"Line: {line}, Index: {i} -> Heading number is too high!")
+			#assert hCount < 7, fail(f"Line: {line}, Index: {i} -> Heading number is too high!")
+			# we could use this for a test, cause we dont want a crash on improper formatting
 			tokens.append(Token(MD.HEADING, (i + 1) - hCount, i + 1))
 		elif char == "`":
 			tokens.append(Token(MD.CODE, i, i + 1))
