@@ -13,7 +13,7 @@ from ParseMarkdown import parse
 from Lexer import *
 from Styles import *
 from TokenTypes import *
-from Tokens import *
+from Token import *
 from Debug import *
 
 class Application(wx.Frame):
@@ -25,10 +25,10 @@ class Application(wx.Frame):
 
 		args = sys.argv
 		if len(args) == 2:
-			self.currentMD = args[1]
+			self.currentAMD = args[1]
 		else:
 			warn("no file passed")
-			self.currentMD = "Notes/test.amd"
+			self.currentAMD = "Notes/test.amd" # at some point change this load nothing
 		self.currentHTML = f"{os.getcwd()}/Notes/html/test.html"
 
 		panel = wx.Panel(self)
@@ -48,6 +48,7 @@ class Application(wx.Frame):
 		#self.edit.SetUseTabs(True) true by default make it an option
 		self.setupStyling()
 		self.edit.Bind(wx.EVT_KEY_UP, self.onKeyUp)
+		self.edit.Bind(stc.EVT_STC_UPDATEUI, self.onUpdateUI)
 		#self.setColors()
 
 		sizer.Add(self.edit, 4, wx.EXPAND)
@@ -57,16 +58,29 @@ class Application(wx.Frame):
 
 		panel.SetSizer(sizer)
 
-		self.edit.LoadFile(self.currentMD)
+		self.edit.LoadFile(self.currentAMD)
 		self.wv.LoadURL(self.currentHTML)
 
 		self.makeMenuBar()
 		self.SetSize((1280, 720))
 		self.Center()
 		self.SetTitle("NoteMaker")
+		self.CreateStatusBar()
 		self.onKeyUp(wx.KeyEvent(wx.wxEVT_NULL))
 		self.Show()
-		
+
+	
+	def onUpdateUI(self, event):
+		selectionBegin: int = self.edit.GetSelection()[0]
+		selectionEnd: int = self.edit.GetSelection()[1]
+		selectedCount: int = 0
+		currentLine: int = self.edit.GetCurrentLine() + 1 # because lines start at 0, but not in the margin line count
+		currentPosition: int = self.edit.GetCurrentPos()
+		currentColumn: int = self.edit.GetColumn(currentPosition)
+		if selectionBegin != selectionEnd:
+			selectedCount = selectionEnd - selectionBegin
+		status: str = f"Line: {currentLine}\tColumn: {currentColumn}\tPosition: {currentPosition}\tSelected: {selectedCount}\tUTF-8\tLF"
+		self.SetStatusText(status)
 
 	def onKeyUp(self, event):
 		start = time.time()
@@ -158,12 +172,16 @@ class Application(wx.Frame):
 
 
 	def onSave(self, event):
-		f = open(self.currentMD, "wb")
-		f.write(self.edit.GetValue().encode("UTF-8").replace(b"\r\n", b"\n"))
-		f.close()
+		try:
+			f = open(self.currentAMD, "wb")
+			f.write(self.edit.GetValue().encode("UTF-8").replace(b"\r\n", b"\n")) # TODO line endings, encoding settings
+			f.close() 
+		except:
+			fail("Could not save file!")
+			self.SetStatusText(f"Could not save file: {self.currentAMD}!")
 
 		start = time.time()
-		#parse(self.currentMD) # currently disabled because the parser hasnt been updated
+		#parse(self.currentAMD) # currently disabled because the parser hasnt been updated
 		end = time.time()
 		print(f"Parse time: {round(end - start, 2)}s")
 		self.wv.Reload()
