@@ -9,12 +9,12 @@ from typing import Dict
 from typing import NewType
 
 from TokenTypes import *
-from Tokens import *
+from Token import *
 from Debug import *
 
-TToken = NewType('TToken', None)
+LexerToken = NewType('Token', None)
 
-def lex(text: str) -> List[TToken]:
+def lex(text: str) -> List[LexerToken]:
 	if os.path.exists(text):
 		text = open(text, "r").read()
 

@@ -18,18 +18,3 @@ class Token:
 
 	def __repr__(self) -> str:
 		return f"{self.__dict__!r}"
-
-
-class ListToken(Token):
-
-	def __init__(self, id: MD_ENUM, begin: int = None, end: int = None, indent: int = None) -> None:
-		super().__init__(id, begin, end)
-		self.indent = indent
-
-	
-	def __str__(self) -> str:
-		return f"\nListToken:\n\tid:{self.id}\n\tbegin:{self.begin}\n\tend:{self.end}\n\tindent:{self.indent}\n"
-
-
-	def __repr__(self) -> str:
-		return f"{self.__dict__!r}"
