@@ -20,7 +20,7 @@ class Application(wx.Frame):
 		super(Application, self).__init__(*args, **kw)
 
 		self.currentHTML = f"{os.getcwd()}/Notes/html/test.html"
-		self.currentMD = "Notes/test.md"
+		self.currentMD = "Notes/complex list.md"
 
 		panel = wx.Panel(self)
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -67,8 +67,8 @@ class Application(wx.Frame):
 		for i, t in enumerate(tokens):
 			#if i == 20:
 			#	break
-			if t.id != MD.LIST_ITEM_TEXT:
-				debug(t)
+			""" if t.id not in [MD.LIST_ITEM_TEXT, MD.NEWLINE, MD.TAB, MD.SPACE, MD.LIST_ITEM_BEGIN]:
+				debug(t) """
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:
 				if t.id == MD.ERROR:
@@ -99,6 +99,8 @@ class Application(wx.Frame):
 				elif t.id == MD.HORIZONTAL_RULE:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id == MD.LIST_ITEM_BEGIN:
+					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
+				elif t.id in [MD.ULIST_END, MD.OLIST_END]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				else:
 					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
