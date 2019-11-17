@@ -107,8 +107,12 @@ def lex(text: str) -> List[TToken]:
 						warn(f"Line: {line}, Index: {i} -> Improper list formatting! Could not find whitespace or newline!")
 					else:
 						for t in tokens.__reversed__():
-							if t.id == MD.LIST_ITEM_BEGIN:
+							if t.id in [MD.ULIST_BEGIN, MD.OLIST_BEGIN]:
 								if t.indent == indent:
+									if t.id != MD.ULIST_BEGIN:
+										tokens.append(ListToken(MD.ULIST_BEGIN, i, i + 1, indent))
+										listIndex.append(MD.ULIST_END)
+										lCount += 1
 									tokens.append(ListToken(MD.LIST_ITEM_BEGIN, i, i + 1, indent))
 									i += 1
 									tokens.append(Token(MD.SPACE, i, i + 1))
@@ -124,15 +128,17 @@ def lex(text: str) -> List[TToken]:
 									listItem = True
 									break
 								elif t.indent > indent:
-									diff = t.indent - indent + 1
+									diff = len(listIndex) - 1 # - 1 to avoid closing all of them out since we to close one later on
+									if diff == 1:
+										diff = 2
 									for num in range(1, diff):
 										l = listIndex[num * -1]
 										if l == MD.OLIST_END:
-											tokens.append(ListToken(listIndex[num * -1], i, i + 2, indent))
+											tokens.append(ListToken(MD.OLIST_END, i, i + 2, indent))
 										else:
-											tokens.append(ListToken(listIndex[num * -1], i, i + 1, indent))
+											tokens.append(ListToken(MD.ULIST_END, i, i + 1, indent))
 									for num in range(diff, 1, -1):
-										del listIndex[num * -1]	
+										del listIndex[1] # num * -1 # this seems to be the problem # seems might be fixed atm?
 										lCount -= 1
 									tokens.append(ListToken(MD.LIST_ITEM_BEGIN, i, i + 1, indent))
 									i += 1
@@ -164,8 +170,12 @@ def lex(text: str) -> List[TToken]:
 							warn(f"Line: {line}, Index: {i} -> Improper list formatting! Could not find whitespace or newline!")
 						else:
 							for t in tokens.__reversed__():
-								if t.id == MD.LIST_ITEM_BEGIN: 
+								if t.id in [MD.ULIST_BEGIN, MD.OLIST_BEGIN]:
 									if t.indent == indent:
+										if t.id != MD.OLIST_BEGIN:
+											tokens.append(ListToken(MD.OLIST_BEGIN, i, i + 1, indent))
+											listIndex.append(MD.OLIST_END)
+											lCount += 1
 										tokens.append(ListToken(MD.LIST_ITEM_BEGIN, i, i + 2, indent))
 										i += 2
 										tokens.append(Token(MD.SPACE, i, i + 1))
@@ -181,16 +191,20 @@ def lex(text: str) -> List[TToken]:
 										listItem = True
 										break
 									elif t.indent > indent:
-										diff = t.indent - indent + 1
+										diff = len(listIndex) - 1 # - 1 to avoid closing all of them out since we to close one later on
+										if diff == 1:
+											diff = 2
 										for num in range(1, diff):
 											l = listIndex[num * -1]
 											if l == MD.OLIST_END:
-												tokens.append(ListToken(listIndex[num * -1], i, i + 2, indent))
+												tokens.append(ListToken(MD.OLIST_END, i, i + 2, indent))
 											else:
-												tokens.append(ListToken(listIndex[num * -1], i, i + 1, indent))
+												tokens.append(ListToken(MD.ULIST_END, i, i + 1, indent))
+										#print(len(listIndex))
 										for num in range(diff, 1, -1):
-											del listIndex[num * -1]	
+											del listIndex[1] # num * -1 # this seems to be the problem # seems might be fixed atm?
 											lCount -= 1
+										#print(len(listIndex))
 										tokens.append(ListToken(MD.LIST_ITEM_BEGIN, i, i + 2, indent))
 										i += 2
 										tokens.append(Token(MD.SPACE, i, i + 1))

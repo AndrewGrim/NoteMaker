@@ -67,7 +67,8 @@ class Application(wx.Frame):
 		for i, t in enumerate(tokens):
 			#if i == 20:
 			#	break
-			debug(t)
+			if t.id != MD.LIST_ITEM_TEXT:
+				debug(t)
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:
 				if t.id == MD.ERROR:
