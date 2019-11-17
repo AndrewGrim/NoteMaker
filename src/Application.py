@@ -1,7 +1,9 @@
 import time
 import os
+import sys
+import platform
 import subprocess
-import  keyword
+import keyword
 
 import wx
 import wx.html2 as webview
@@ -18,9 +20,16 @@ class Application(wx.Frame):
 
 	def __init__(self, *args, **kw):
 		super(Application, self).__init__(*args, **kw)
+		if platform.system() == "Windows":
+			os.system("color")
 
+		args = sys.argv
+		if len(args) == 2:
+			self.currentMD = args[1]
+		else:
+			warn("no file passed")
+			self.currentMD = "Notes/test.amd"
 		self.currentHTML = f"{os.getcwd()}/Notes/html/test.html"
-		self.currentMD = "Notes/complex list.md"
 
 		panel = wx.Panel(self)
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -154,7 +163,7 @@ class Application(wx.Frame):
 		f.close()
 
 		start = time.time()
-		parse(self.currentMD)
+		#parse(self.currentMD) # currently disabled because the parser hasnt been updated
 		end = time.time()
 		print(f"Parse time: {round(end - start, 2)}s")
 		self.wv.Reload()

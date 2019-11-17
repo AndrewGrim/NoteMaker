@@ -95,12 +95,12 @@ def parse(mdFile: str) -> List[Token]:
 	#files = ["basic", "advanced_supported"]#, "advanced"]
 	#for f in files: 
 	f = os.path.splitext(mdFile)[0]
-	r = open(f"{f}.md", "r")
+	r = open(f"{f}.amd", "r")
 	
 	html = f[f.rfind("/") + 1:]
 	w = open(f"Notes/html/{html}.html", "w")
 
-	fSize = fileSize(f"{f}.md")
+	fSize = fileSize(f"{f}.amd")
 	i = 0
 	lineEnd = ""
 	code = False
@@ -455,7 +455,7 @@ if __name__ == "__main__":
 		print("You need to specify the file to parse!")
 		print("""
 	Usage:
-		ParseMarkdown <file.md>
+		ParseMarkdown <file.amd>
 	""")
 	else:
 		print("The program only supports one file argument atm!")
