@@ -109,7 +109,7 @@ class Application(wx.Frame):
 		for i, t in enumerate(tokens):
 			#if i == 20:
 			#	break
-			""" if t.id not in [MD.LIST_ITEM_TEXT, MD.NEWLINE, MD.TAB, MD.SPACE, MD.LIST_ITEM_BEGIN]:
+			""" if t.id in [MD.CHECKED, MD.UNCHECKED, MD.CHECK_END, MD.CHECK_TEXT]:
 				debug(t) """
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:
@@ -143,6 +143,8 @@ class Application(wx.Frame):
 				elif t.id == MD.LIST_ITEM_BEGIN:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id in [MD.ULIST_END, MD.OLIST_END]:
+					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
+				elif t.id in [MD.CHECKED, MD.UNCHECKED]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				else:
 					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)

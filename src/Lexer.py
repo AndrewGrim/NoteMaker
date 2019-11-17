@@ -64,6 +64,12 @@ def lex(text: str) -> List[LexerToken]:
 				tokens.append(Token(MD.ITALIC_END, i, i + 1))
 			else:
 				tokens.append(Token(MD.ITALIC, i, i + 1))
+		elif check:
+			if char == "\n":
+				check = False
+				tokens.append(Token(MD.CHECK_END, i, i + 1))
+			else:
+				tokens.append(Token(MD.CHECK_TEXT, i, i + 1))
 		elif listBlock:
 			try:
 				text[i + 1]
@@ -73,6 +79,7 @@ def lex(text: str) -> List[LexerToken]:
 				listIndex = []
 				listBlock = False
 				if lCount > 0:
+					tokens.append(Token(MD.ERROR, i - 1, i))
 					warn(f"Found unclosed list/s! lCount should be 0 instead is {lCount}!")
 			elif char == "\n" and text[i - 1] != ";":
 				listItem = False
@@ -217,9 +224,32 @@ def lex(text: str) -> List[LexerToken]:
 				if c == "-":
 					tokens.append(Token(MD.HORIZONTAL_RULE, i, i + 3))
 					i += 2
+			elif nextC == " " and text[i + 2] == "[":
+				c = text[i + 3]
+				if c == " ":
+					if text[i + 4] == "]" and text[i + 5] == " ":
+						tokens.append(Token(MD.UNCHECKED, i, i + 5))
+						i += 5
+						tokens.append(Token(MD.SPACE, i, i + 1))
+						check = True
+					else:
+						tokens.append(Token(MD.ERROR, i, i + 5))
+						warn(f"Line: {line}, Index: {i} -> Improper check formatting! Expected ']' and space! Found '{text[i + 4]}' and '{text[i + 5]}'!")
+				elif c == "x":
+					if text[i + 4] == "]" and text[i + 5] == " ":
+						tokens.append(Token(MD.CHECKED, i, i + 5))
+						i += 5
+						tokens.append(Token(MD.SPACE, i, i + 1))
+						check = True
+					else:
+						tokens.append(Token(MD.ERROR, i, i + 5))
+						warn(f"Line: {line}, Index: {i} -> Improper check formatting! Expected ']' and space! Found '{text[i + 4]}' and '{text[i + 5]}'!")
+				else:
+					tokens.append(Token(MD.ERROR, i, i + 4))
+					warn(f"Line: {line}, Index: {i} -> Improper check formatting! Expected either 'space' or 'x'! Found '{c}'!")
 			else:
 				tokens.append(Token(MD.ERROR, i, i + 1))
-				fail(f"Line: {line}, Index: {i} -> UNRECOGNIZED SYMBOL! '-'.")
+				warn(f"Line: {line}, Index: {i} -> Expected either horizontal rule or check! Found '{nextC}'!")
 		else:
 			tokens.append(Token(MD.TEXT, i, i + 1))
 		i += 1
