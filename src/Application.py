@@ -65,12 +65,26 @@ class Application(wx.Frame):
 		self.SetSize((1280, 720))
 		self.Center()
 		self.SetTitle("NoteMaker")
-		self.CreateStatusBar()
+		self.status = self.CreateStatusBar()
+		self.status.SetFieldsCount(7)
+		w = self.GetSize()[0]
+		w = w - 7 * 100
+		self.status.SetStatusWidths([100, 100, 100, 100, w, 100, 100])
+
 		self.onKeyUp(wx.KeyEvent(wx.wxEVT_NULL))
+		self.Bind(wx.EVT_SIZE, self.onSize)
 		self.Show()
+
+
+	def onSize(self, event):
+		w = self.GetSize()[0]
+		w = w - 7 * 100
+		self.status.SetStatusWidths([100, 100, 100, 100, w, 100, 100])
+		event.Skip()
 
 	
 	def onUpdateUI(self, event):
+		self.Freeze()
 		selectionBegin: int = self.edit.GetSelection()[0]
 		selectionEnd: int = self.edit.GetSelection()[1]
 		selectedCount: int = 0
@@ -79,8 +93,13 @@ class Application(wx.Frame):
 		currentColumn: int = self.edit.GetColumn(currentPosition)
 		if selectionBegin != selectionEnd:
 			selectedCount = selectionEnd - selectionBegin
-		status: str = f"Line: {currentLine}\tColumn: {currentColumn}\tPosition: {currentPosition}\tSelected: {selectedCount}\tUTF-8\tLF"
-		self.SetStatusText(status)
+		self.SetStatusText(f"Line: {currentLine}", 0)
+		self.SetStatusText(f"Column: {currentColumn}", 1)
+		self.SetStatusText(f"Position: {currentPosition}", 2)
+		self.SetStatusText(f"Selected: {selectedCount}", 3)
+		self.SetStatusText(f"UTF-8", 5)
+		self.SetStatusText(f"LF", 6)
+		self.Thaw()
 
 	def onKeyUp(self, event):
 		start = time.time()
