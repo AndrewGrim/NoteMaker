@@ -154,6 +154,12 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id in [MD.LINK_ALT_TEXT, MD.LINK_PATH_TEXT]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.LINK)
+				elif t.id in [MD.HTML_BEGIN, MD.HTML_END]:
+					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
+				elif t.id == MD.HTML_TEXT:
+					self.edit.SetStyling(t.end - t.begin, STYLE.HTML)
+				elif t.id == MD.HTML_ATTRIBUTE_TEXT:
+					self.edit.SetStyling(t.end - t.begin, STYLE.HTML_ATTRIBUTE)
 				else:
 					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
 			elif t.id == MD.NEWLINE:
@@ -273,6 +279,8 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(11, "fore:#7d9d90,italic,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(12, "fore:#cb8296,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(13, "fore:#cb8296,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(14, "fore:#cb8296,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(15, "fore:#d9a62e,size:%(size)d" % faces)
 		# maybe have additional styles for the inside which is bold/underlined
 		# and maybe lex these same way that i do code?
 		self.edit.StyleSetSpec(8, "fore:#d9a62e,bold,size:%(size)d" % faces)

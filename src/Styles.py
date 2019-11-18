@@ -13,6 +13,8 @@ class STYLE(IntEnum):
 	ITALIC = 11
 	IMAGE = 12
 	LINK = 13
+	HTML = 14
+	HTML_ATTRIBUTE = 15
 
 class INDICATOR(IntEnum):
 	ERROR = 32
