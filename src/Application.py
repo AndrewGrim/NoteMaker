@@ -109,7 +109,7 @@ class Application(wx.Frame):
 		for i, t in enumerate(tokens):
 			#if i == 20:
 			#	break
-			""" if t.id in [MD.CHECKED, MD.UNCHECKED, MD.CHECK_END, MD.CHECK_TEXT]:
+			""" if t.id in [MD.IMAGE_PATH_BEGIN]:
 				debug(t) """
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:
@@ -146,6 +146,14 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id in [MD.CHECKED, MD.UNCHECKED]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
+				elif t.id in [MD.IMAGE_ALT_BEGIN, MD.IMAGE_ALT_END, MD.IMAGE_PATH_BEGIN, MD.IMAGE_PATH_END]:
+					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
+				elif t.id in [MD.IMAGE_ALT_TEXT, MD.IMAGE_PATH_TEXT]:
+					self.edit.SetStyling(t.end - t.begin, STYLE.IMAGE)
+				elif t.id in [MD.LINK_ALT_BEGIN, MD.LINK_ALT_END, MD.LINK_PATH_BEGIN, MD.LINK_PATH_END]:
+					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
+				elif t.id in [MD.LINK_ALT_TEXT, MD.LINK_PATH_TEXT]:
+					self.edit.SetStyling(t.end - t.begin, STYLE.LINK)
 				else:
 					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
 			elif t.id == MD.NEWLINE:
@@ -263,6 +271,8 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(6, "fore:#ff00ff,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(7, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(11, "fore:#7d9d90,italic,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(12, "fore:#cb8296,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(13, "fore:#cb8296,size:%(size)d" % faces)
 		# maybe have additional styles for the inside which is bold/underlined
 		# and maybe lex these same way that i do code?
 		self.edit.StyleSetSpec(8, "fore:#d9a62e,bold,size:%(size)d" % faces)

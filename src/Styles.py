@@ -11,6 +11,8 @@ class STYLE(IntEnum):
 	BOLD = 8
 	UNDERLINE = 9
 	ITALIC = 11
+	IMAGE = 12
+	LINK = 13
 
 class INDICATOR(IntEnum):
 	ERROR = 32

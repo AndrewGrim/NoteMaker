@@ -28,6 +28,8 @@ def lex(text: str) -> List[LexerToken]:
 	bold = False
 	underline = False
 	italic = False
+	image = False
+	link = False
 
 	lCount = 0
 	listBlock = False
@@ -70,6 +72,20 @@ def lex(text: str) -> List[LexerToken]:
 				tokens.append(Token(MD.CHECK_END, i, i + 1))
 			else:
 				tokens.append(Token(MD.CHECK_TEXT, i, i + 1))
+		elif image:
+			if char == "\n":
+				image = False
+			elif char == ")":
+				tokens.append(Token(MD.IMAGE_PATH_END, i, i + 1))
+			else:
+				tokens.append(Token(MD.IMAGE_PATH_TEXT, i, i + 1))
+		elif link:
+			if char == "\n":
+				link = False
+			elif char == ")":
+				tokens.append(Token(MD.LINK_PATH_END, i, i + 1))
+			else:
+				tokens.append(Token(MD.LINK_PATH_TEXT, i, i + 1))
 		elif listBlock:
 			try:
 				text[i + 1]
@@ -250,6 +266,62 @@ def lex(text: str) -> List[LexerToken]:
 			else:
 				tokens.append(Token(MD.ERROR, i, i + 1))
 				warn(f"Line: {line}, Index: {i} -> Expected either horizontal rule or check! Found '{nextC}'!")
+		elif char == "!":
+			nextC = text[i + 1]
+			if nextC == "[":
+				index = i + 2
+				while True:
+					c = text[index]
+					if c == "]":
+						tokens.append(Token(MD.IMAGE_ALT_BEGIN, i, i + 2))
+						tokens.append(Token(MD.IMAGE_ALT_END, index, index + 1))
+						i = index
+						if text[i + 1] == "(":
+							tokens.append(Token(MD.IMAGE_PATH_BEGIN, i + 1, i + 2))
+							image = True
+							i += 1
+						else:
+							tokens.append(Token(MD.ERROR, i + 1, i + 2))
+							warn(f"Line: {line}, Index: {i} -> Improper image formatting! Expected '('! Found '{char}'!")
+						break
+					elif c == "\n":
+						tokens.append(Token(MD.ERROR, index, index + 1))
+						print(f"Line: {line}, TotalChar: {i} -> Improper image formatting! Couldn't find the closing ']' bracket!")
+						break
+					else:
+						tokens.append(Token(MD.IMAGE_ALT_TEXT, index, index + 1))
+						index += 1
+			else:
+				tokens.append(Token(MD.ERROR, i, i + 2))
+				warn(f"Line: {line}, Index: {i} -> Improper image formatting! Expected '['! Found '{nextC}'!")
+		elif char == "?":
+			nextC = text[i + 1]
+			if nextC == "[":
+				index = i + 2
+				while True:
+					c = text[index]
+					if c == "]":
+						tokens.append(Token(MD.LINK_ALT_BEGIN, i, i + 2))
+						tokens.append(Token(MD.LINK_ALT_END, index, index + 1))
+						i = index
+						if text[i + 1] == "(":
+							tokens.append(Token(MD.LINK_PATH_BEGIN, i + 1, i + 2)) 
+							link = True
+							i += 1
+						else:
+							tokens.append(Token(MD.ERROR, i + 1, i + 2))
+							warn(f"Line: {line}, Index: {i} -> Improper link formatting! Expected '('! Found '{char}'!")
+						break
+					elif c == "\n":
+						tokens.append(Token(MD.ERROR, index, index + 1))
+						print(f"Line: {line}, TotalChar: {i} -> Improper link formatting! Couldn't find the closing ']' bracket!")
+						break
+					else:
+						tokens.append(Token(MD.LINK_ALT_TEXT, index, index + 1))
+						index += 1
+			else:
+				tokens.append(Token(MD.ERROR, i, i + 2))
+				warn(f"Line: {line}, Index: {i} -> Improper image formatting! Expected '['! Found '{nextC}'!")
 		else:
 			tokens.append(Token(MD.TEXT, i, i + 1))
 		i += 1
