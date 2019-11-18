@@ -1,5 +1,15 @@
 import os
 import sys
+from enum import Enum
+import typing
+from typing import List
+from typing import Union
+from typing import Tuple
+from typing import Dict
+from typing import NewType
+
+MD_ENUM = NewType('MD_ENUM', int)
+Token = NewType('Token', None)
 
 """
 A very simple and naive markdown parser.
@@ -29,12 +39,53 @@ Currently supported markdown:
 		footnotes
 """
 
-def parse(mdFile: str):
+class MD(Enum):
+	HEADING = 0
+	HEADING1 = 1
+	HEADING2 = 2
+	HEADING3 = 3
+	HEADING4 = 4
+	HEADING5 = 5
+	HEADING6 = 6
+	BOLD = 7
+	ITALIC = 8
+	UNDER = 9
+	STRIKE = 10
+	BLOCKQUOTE = 11
+	CODE = 12
+	ULIST = 13
+	OLIST = 14
+	CHECKED = 15
+	UNCHECKED = 16
+	IMAGE = 17
+	LINK = 18
+	HTML = 19
+
+
+class Token:
+
+	def __init__(self, id: MD_ENUM, content: str = "", end: str = "") -> None:
+		self.id = id
+		self.content = content
+		self.end = end
+
+	
+	def __str__(self) -> str:
+		return f"\nToken:\n\tid:{self.id}\n\tcontent:{self.content}\n\tend:{self.end}\n"
+
+
+	def __repr__(self) -> str:
+		return self.__str__()
+
+
+def parse(mdFile: str) -> List[Token]:
 	"""
 	This will read from the specified markdown file.
 	Write the html to the same name with an html extension and
 	make a css file again with the same name but .css
 	"""
+
+	tokens = []
 
 	def fileSize(fname):
 		statinfo = os.stat(fname)
@@ -44,12 +95,12 @@ def parse(mdFile: str):
 	#files = ["basic", "advanced_supported"]#, "advanced"]
 	#for f in files: 
 	f = os.path.splitext(mdFile)[0]
-	r = open(f"{f}.md", "r")
+	r = open(f"{f}.amd", "r")
 	
 	html = f[f.rfind("/") + 1:]
 	w = open(f"Notes/html/{html}.html", "w")
 
-	fSize = fileSize(f"{f}.md")
+	fSize = fileSize(f"{f}.amd")
 	i = 0
 	lineEnd = ""
 	code = False
@@ -170,6 +221,7 @@ def parse(mdFile: str):
 			if hCount > 6:
 				print(f"Line: {line}, TotalChar: {i} -> Heading number is too high!")
 			else:
+				tokens.append(Token(MD.HEADING))
 				w.write(f'<h{hCount}>')
 				lineEnd = f"</h{hCount}>"
 		elif char == "*":
@@ -393,15 +445,17 @@ def parse(mdFile: str):
 		i += 1
 	w.write('</div>\n')
 
+	return tokens
+
 if __name__ == "__main__":
 	args = sys.argv
 	if len(args) == 2:
-		parse(args[1])
+		print(parse(args[1]))
 	elif len(args) == 1:
 		print("You need to specify the file to parse!")
 		print("""
 	Usage:
-		ParseMarkdown <file.md>
+		ParseMarkdown <file.amd>
 	""")
 	else:
 		print("The program only supports one file argument atm!")
