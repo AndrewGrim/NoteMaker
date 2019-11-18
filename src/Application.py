@@ -124,6 +124,8 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.CODE)
 				elif t.id == MD.BLOCKQUOTE:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
+				elif t.id in [MD.STRIKE_BEGIN, MD.STRIKE_END]:
+					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id == MD.STRIKE:
 					self.edit.SetStyling(t.end - t.begin, STYLE.STRIKE)
 				elif t.id in [MD.BOLD_BEGIN, MD.BOLD_END]:

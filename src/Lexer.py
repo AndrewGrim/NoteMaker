@@ -33,6 +33,7 @@ def lex(text: str) -> List[LexerToken]:
 	italic = False
 	image = False
 	link = False
+	strike = False
 
 	lCount = 0
 	listBlock = False
@@ -69,6 +70,13 @@ def lex(text: str) -> List[LexerToken]:
 				tokens.append(Token(MD.ITALIC_END, i, i + 1))
 			else:
 				tokens.append(Token(MD.ITALIC, i, i + 1))
+		elif strike:
+			if char == "~" and text[i + 1] == "~":
+				strike = False
+				tokens.append(Token(MD.STRIKE_END, i, i + 2))
+				i += 1
+			else:
+				tokens.append(Token(MD.STRIKE, i, i + 1))
 		elif check:
 			if char == "\n":
 				check = False
@@ -96,10 +104,9 @@ def lex(text: str) -> List[LexerToken]:
 			elif char == '"':
 				if htmlAttribute:
 					htmlAttribute = False
-					tokens.append(Token(MD.HTML_ATTRIBUTE_TEXT, i, i + 1))
 				else:
 					htmlAttribute = True
-					tokens.append(Token(MD.HTML_ATTRIBUTE_TEXT, i, i + 1))
+				tokens.append(Token(MD.HTML_ATTRIBUTE_TEXT, i, i + 1))
 			elif htmlAttribute:
 				tokens.append(Token(MD.HTML_ATTRIBUTE_TEXT, i, i + 1))
 			else:
@@ -202,7 +209,8 @@ def lex(text: str) -> List[LexerToken]:
 		elif char == "~":
 			nextC = text[i + 1]
 			if nextC == "~":
-				tokens.append(Token(MD.STRIKE, i, i + 2))
+				tokens.append(Token(MD.STRIKE_BEGIN, i, i + 2))
+				strike = True
 				i += 1
 			else:
 				tokens.append(Token(MD.ERROR, i, i + 1))
