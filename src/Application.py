@@ -64,6 +64,8 @@ class Application(wx.Frame):
 		self.makeMenuBar()
 		self.SetSize((1280, 720))
 		self.Center()
+		icon = wx.Icon("images/amd.png")
+		self.SetIcon(icon)
 		self.SetTitle("NoteMaker")
 		self.status = self.CreateStatusBar()
 		self.status.SetFieldsCount(7)
