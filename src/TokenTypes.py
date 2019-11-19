@@ -3,6 +3,8 @@ import typing
 
 class MD(IntEnum):
 	HEADING = 0
+	HEADING_END = 1
+	HEADING_TEXT = 2
 	BOLD = 7
 	ITALIC = 8
 	UNDERLINE = 9

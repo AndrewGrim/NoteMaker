@@ -21,6 +21,7 @@ def lex(text: str) -> List[LexerToken]:
 	tokens = []
 
 	i = 0
+	heading = False
 	code = False
 	line = 0
 	check = False
@@ -50,6 +51,12 @@ def lex(text: str) -> List[LexerToken]:
 				tokens.append(Token(MD.CODE_END, i, i + 1))
 			else:
 				tokens.append(Token(MD.CODE, i, i + 1))
+		if heading:
+			if char == "\n":
+				tokens.append(Token(MD.HEADING_END, i, i + 1))
+				heading = False
+			else:
+				tokens.append(Token(MD.HEADING_TEXT, i, i + 1, char))
 		elif bold:
 			if char == "*":
 				bold = False
@@ -188,7 +195,7 @@ def lex(text: str) -> List[LexerToken]:
 			while True:
 				c = text[i]
 				if c == " ":
-					i -= 1
+					tokens.append(Token(MD.SPACE, i, i + 1))
 					break
 				elif c == "\n":
 					warn(f"Line: {line}, Index: {i} -> Improperly formatted heading! You need a space after the # !")
@@ -198,9 +205,10 @@ def lex(text: str) -> List[LexerToken]:
 					hCount += 1
 					if hCount > 6:
 						warn(f"Line: {line}, Index: {i} -> Too many #! You can only use up to 6 # !")
-						tokens.append(Token(MD.ERROR, (i - hCount) + 1, i + 1))
+						tokens.append(Token(MD.ERROR, i - hCount, i + 1))
 				i += 1
-			tokens.append(Token(MD.HEADING, (i + 1) - hCount, i + 1))
+			tokens.append(Token(MD.HEADING, i - hCount - 1, i + 1))
+			heading = True
 		elif char == "`":
 			tokens.append(Token(MD.CODE_BEGIN, i, i + 1))
 			code = True

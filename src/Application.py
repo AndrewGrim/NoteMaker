@@ -106,7 +106,8 @@ class Application(wx.Frame):
 
 	def onKeyUp(self, event):
 		start = time.time()
-		tokens = lex(self.edit.GetValue())
+		text = self.edit.GetValue()
+		tokens = lex(text)
 		error = False
 		keywords = (" ".join(keyword.kwlist) + " self").split()
 		for i, t in enumerate(tokens):

@@ -6,10 +6,11 @@ MD_ENUM = NewType('MD_ENUM', int)
 
 class Token:
 
-	def __init__(self, id: MD_ENUM, begin: int = None, end: int = None) -> None:
+	def __init__(self, id: MD_ENUM, begin: int = None, end: int = None, content: str = None) -> None:
 		self.id = id
 		self.begin = begin
 		self.end = end
+		self.content = content
 
 	
 	def __str__(self) -> str:
