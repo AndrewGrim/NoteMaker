@@ -15,6 +15,7 @@ from Styles import *
 from TokenTypes import *
 from Token import *
 from Debug import *
+from Parser import *
 
 class Application(wx.Frame):
 
@@ -189,6 +190,10 @@ class Application(wx.Frame):
 				self.edit.SetStyling(len(key), 6)"""
 		end = time.time()
 		info(f"Lex and highlight time: {round(end - start, 2)}")
+		start = time.time()
+		parse(tokens)
+		end = time.time()
+		info(f"Parse time: {round(end - start, 2)}")
 		event.Skip()
 
 
