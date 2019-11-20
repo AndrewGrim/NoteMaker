@@ -42,6 +42,7 @@ def generateHTML(html: List[str]):
 def parse(tokens: List[LexerToken]) -> None:
 	html = []
 	i = 0
+	linkText = ""
 	while i < len(tokens):
 		t = tokens[i]
 		if t.id == MD.HEADING:
@@ -58,5 +59,98 @@ def parse(tokens: List[LexerToken]) -> None:
 					tt = tokens[i - index]
 				index += 1
 			html.append(f"</h{tt.end - tt.begin - 2}>")
+		elif t.id == MD.CHECKED:
+			html.append(f'<input type="checkbox" checked>')
+		elif t.id == MD.UNCHECKED:
+			html.append(f'<input type="checkbox">')
+		elif t.id == MD.CHECK_TEXT:
+			html.append(t.content)
+		elif t.id == MD.CHECK_END:
+			html.append("<br>")
+		elif t.id == MD.BOLD_BEGIN:
+			html.append("<b>")
+		elif t.id == MD.BOLD_END:
+			html.append("</b>")
+		elif t.id == MD.BOLD:
+			html.append(t.content)
+		elif t.id == MD.NEWLINE:
+			html.append("\n<br>")
+		elif t.id == MD.SPACE:
+			html.append(" ")
+		elif t.id == MD.TAB:
+			html.append("\t")
+		elif t.id == MD.ITALIC_BEGIN:
+			html.append("<i>")
+		elif t.id == MD.ITALIC_END:
+			html.append("</i>")
+		elif t.id == MD.ITALIC:
+			html.append(t.content)
+		elif t.id == MD.STRIKE_BEGIN:
+			html.append("<strike>")
+		elif t.id == MD.STRIKE_END:
+			html.append("</strike>")
+		elif t.id == MD.STRIKE:
+			html.append(t.content)
+		elif t.id == MD.CODE_BEGIN:
+			html.append("<code>")
+		elif t.id == MD.CODE_END:
+			html.append("</code>")
+		elif t.id == MD.CODE:
+			pass#html.append(t.content) # somethings weird here, get double the characters
+		elif t.id == MD.UNDERLINE_BEGIN:
+			html.append("<u>")
+		elif t.id == MD.UNDERLINE_END:
+			html.append("</u>")
+		elif t.id == MD.UNDERLINE:
+			html.append(t.content)
+		elif t.id == MD.HORIZONTAL_RULE:
+			html.append("<hr>")
+		elif t.id == MD.BLOCKQUOTE_BEGIN:
+			html.append("<blockquote>")
+		elif t.id == MD.BLOCKQUOTE_END:
+			html.append("</blockquote>")
+		elif t.id == MD.BLOCKQUOTE_TEXT:
+			html.append(t.content)
+		elif t.id == MD.LINK_ALT_BEGIN:
+			html.append('<a ')
+		elif t.id == MD.LINK_ALT_TEXT:
+			linkText += t.content
+		elif t.id == MD.LINK_PATH_BEGIN:
+			html.append('href="')
+		elif t.id == MD.LINK_PATH_END:
+			html.append(f'">{linkText}</a><br>')
+			linkText = ""
+		elif t.id == MD.LINK_PATH_TEXT:
+			html.append(t.content)
+		elif t.id == MD.IMAGE_ALT_BEGIN:
+			html.append('<img alt="')
+		elif t.id == MD.IMAGE_ALT_END:
+			html.append('" ')
+		elif t.id == MD.IMAGE_ALT_TEXT:
+			html.append(t.content)
+		elif t.id == MD.IMAGE_PATH_BEGIN:
+			html.append('src="')
+		elif t.id == MD.IMAGE_PATH_END:
+			html.append(f'"><br>')
+		elif t.id == MD.IMAGE_PATH_TEXT:
+			html.append(t.content)
+
+		elif t.id == MD.ULIST_BEGIN:
+			html.append(f'<ul>')
+		elif t.id == MD.ULIST_END:
+			html.append(f'</ul>')
+		elif t.id == MD.OLIST_BEGIN:
+			html.append(f'<ol>')
+		elif t.id == MD.OLIST_END:
+			html.append(f'</ol>')
+		elif t.id == MD.LIST_ITEM_BEGIN:
+			html.append(f'<li>')
+		elif t.id == MD.LIST_ITEM_END:
+			html.append(f'</li>')
+		elif t.id == MD.LIST_ITEM_TEXT:
+			html.append(t.content)
+
+		elif t.id == MD.TEXT:
+			html.append(t.content)
 		i += 1
 	generateHTML(html)

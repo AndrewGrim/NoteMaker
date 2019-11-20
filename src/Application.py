@@ -30,7 +30,7 @@ class Application(wx.Frame):
 		else:
 			warn("no file passed")
 			self.currentAMD = "Notes/test.amd" # at some point change this load nothing
-		self.currentHTML = f"{os.getcwd()}/Notes/html/test.html"
+		self.currentHTML = f"{os.getcwd()}/tmp.html"#f"{os.getcwd()}/Notes/html/test.html"
 
 		panel = wx.Panel(self)
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -113,7 +113,7 @@ class Application(wx.Frame):
 		for i, t in enumerate(tokens):
 			#if i == 20:
 			#	break
-			""" if t.id in [MD.IMAGE_PATH_BEGIN]:
+			""" if t.id in [MD.LINK_ALT_TEXT]:
 				debug(t) """
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:
@@ -126,7 +126,7 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.HIDDEN)
 				elif t.id in [MD.CODE, MD.CODE_BEGIN, MD.CODE_END]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.CODE)
-				elif t.id == MD.BLOCKQUOTE:
+				elif t.id == MD.BLOCKQUOTE_BEGIN:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id in [MD.STRIKE_BEGIN, MD.STRIKE_END]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
@@ -225,10 +225,6 @@ class Application(wx.Frame):
 			fail("Could not save file!")
 			self.SetStatusText(f"Could not save file: {self.currentAMD}!")
 
-		start = time.time()
-		#parse(self.currentAMD) # currently disabled because the parser hasnt been updated
-		end = time.time()
-		print(f"Parse time: {round(end - start, 2)}s")
 		self.wv.Reload()
 		self.edit.SetFocus()
 

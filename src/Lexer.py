@@ -35,6 +35,7 @@ def lex(text: str) -> List[LexerToken]:
 	image = False
 	link = False
 	strike = False
+	block = False
 
 	lCount = 0
 	listBlock = False
@@ -50,7 +51,7 @@ def lex(text: str) -> List[LexerToken]:
 				code = False
 				tokens.append(Token(MD.CODE_END, i, i + 1))
 			else:
-				tokens.append(Token(MD.CODE, i, i + 1))
+				tokens.append(Token(MD.CODE, i, i + 1, char))
 		if heading:
 			if char == "\n":
 				tokens.append(Token(MD.HEADING_END, i, i + 1))
@@ -63,47 +64,53 @@ def lex(text: str) -> List[LexerToken]:
 				tokens.append(Token(MD.BOLD_END, i, i + 2))
 				i += 1
 			else:
-				tokens.append(Token(MD.BOLD, i, i + 1))
+				tokens.append(Token(MD.BOLD, i, i + 1, char))
+		elif block:
+			if char == "\n":
+				block = False
+				tokens.append(Token(MD.BLOCKQUOTE_END, i, i + 1))
+			else:
+				tokens.append(Token(MD.BLOCKQUOTE_TEXT, i, i + 1, char))
 		elif underline:
 			if char == "_":
 				underline = False
 				tokens.append(Token(MD.UNDERLINE_END, i, i + 2))
 				i += 1
 			else:
-				tokens.append(Token(MD.UNDERLINE, i, i + 1))
+				tokens.append(Token(MD.UNDERLINE, i, i + 1, char))
 		elif italic:
 			if char == "*":
 				italic = False
 				tokens.append(Token(MD.ITALIC_END, i, i + 1))
 			else:
-				tokens.append(Token(MD.ITALIC, i, i + 1))
+				tokens.append(Token(MD.ITALIC, i, i + 1, char))
 		elif strike:
 			if char == "~" and text[i + 1] == "~":
 				strike = False
 				tokens.append(Token(MD.STRIKE_END, i, i + 2))
 				i += 1
 			else:
-				tokens.append(Token(MD.STRIKE, i, i + 1))
+				tokens.append(Token(MD.STRIKE, i, i + 1, char))
 		elif check:
 			if char == "\n":
 				check = False
 				tokens.append(Token(MD.CHECK_END, i, i + 1))
 			else:
-				tokens.append(Token(MD.CHECK_TEXT, i, i + 1))
+				tokens.append(Token(MD.CHECK_TEXT, i, i + 1, char))
 		elif image:
 			if char == "\n":
 				image = False
 			elif char == ")":
 				tokens.append(Token(MD.IMAGE_PATH_END, i, i + 1))
 			else:
-				tokens.append(Token(MD.IMAGE_PATH_TEXT, i, i + 1))
+				tokens.append(Token(MD.IMAGE_PATH_TEXT, i, i + 1, char))
 		elif link:
 			if char == "\n":
 				link = False
 			elif char == ")":
 				tokens.append(Token(MD.LINK_PATH_END, i, i + 1))
 			else:
-				tokens.append(Token(MD.LINK_PATH_TEXT, i, i + 1))
+				tokens.append(Token(MD.LINK_PATH_TEXT, i, i + 1, char))
 		elif html:
 			if char == ">":
 				tokens.append(Token(MD.HTML_END, i, i + 1))
@@ -166,7 +173,7 @@ def lex(text: str) -> List[LexerToken]:
 					warn(f"Line: {line}, Index: {i} -> Improper list formatting! Expected a space after the '*' or digit!")
 				
 			if listItem:
-				tokens.append(Token(MD.LIST_ITEM_TEXT, i, i + 1))
+				tokens.append(Token(MD.LIST_ITEM_TEXT, i, i + 1, char))
 			elif char == " ":
 				tokens.append(Token(MD.SPACE, i, i + 1))
 			elif char == "\t":
@@ -213,7 +220,8 @@ def lex(text: str) -> List[LexerToken]:
 			tokens.append(Token(MD.CODE_BEGIN, i, i + 1))
 			code = True
 		elif char == ">":
-			tokens.append(Token(MD.BLOCKQUOTE, i, i + 1))
+			tokens.append(Token(MD.BLOCKQUOTE_BEGIN, i, i + 1))
+			block = True
 		elif char == "~":
 			nextC = text[i + 1]
 			if nextC == "~":
@@ -302,10 +310,10 @@ def lex(text: str) -> List[LexerToken]:
 				warn(f"Line: {line}, Index: {i} -> Expected either horizontal rule or check! Found '{nextC}'!")
 		elif char == "!" and text[i + 1] == "[":
 			index = i + 2
+			tokens.append(Token(MD.IMAGE_ALT_BEGIN, i, i + 2))
 			while True:
 				c = text[index]
 				if c == "]":
-					tokens.append(Token(MD.IMAGE_ALT_BEGIN, i, i + 2))
 					tokens.append(Token(MD.IMAGE_ALT_END, index, index + 1))
 					i = index
 					if text[i + 1] == "(":
@@ -321,14 +329,14 @@ def lex(text: str) -> List[LexerToken]:
 					print(f"Line: {line}, TotalChar: {i} -> Improper image formatting! Couldn't find the closing ']' bracket!")
 					break
 				else:
-					tokens.append(Token(MD.IMAGE_ALT_TEXT, index, index + 1))
+					tokens.append(Token(MD.IMAGE_ALT_TEXT, index, index + 1, c))
 					index += 1
 		elif char == "?" and text[i + 1] == "[":
 			index = i + 2
+			tokens.append(Token(MD.LINK_ALT_BEGIN, i, i + 2))
 			while True:
 				c = text[index]
 				if c == "]":
-					tokens.append(Token(MD.LINK_ALT_BEGIN, i, i + 2))
 					tokens.append(Token(MD.LINK_ALT_END, index, index + 1))
 					i = index
 					if text[i + 1] == "(":
@@ -344,14 +352,14 @@ def lex(text: str) -> List[LexerToken]:
 					print(f"Line: {line}, TotalChar: {i} -> Improper link formatting! Couldn't find the closing ']' bracket!")
 					break
 				else:
-					tokens.append(Token(MD.LINK_ALT_TEXT, index, index + 1))
+					tokens.append(Token(MD.LINK_ALT_TEXT, index, index + 1, c))
 					index += 1
 		elif char == "<" and text[i + 1] == "<":
 			tokens.append(Token(MD.HTML_BEGIN, i, i + 2))
 			i += 1
 			html = True
 		else:
-			tokens.append(Token(MD.TEXT, i, i + 1))
+			tokens.append(Token(MD.TEXT, i, i + 1, char))
 		i += 1
 
 	return tokens
