@@ -9,7 +9,6 @@ import wx
 import wx.html2 as webview
 import wx.stc as stc
 
-from ParseMarkdown import parse
 from Lexer import *
 from Styles import *
 from TokenTypes import *
@@ -25,12 +24,12 @@ class Application(wx.Frame):
 			os.system("color")
 
 		args = sys.argv
+		self.currentAMD = None
+		self.html = f"{os.getcwd()}/Notes/tmp.html"
+		f = open(self.html, "w")
+		f.close()
 		if len(args) == 2:
 			self.currentAMD = args[1]
-		else:
-			warn("no file passed")
-			self.currentAMD = "Notes/test.amd" # at some point change this load nothing
-		self.currentHTML = f"{os.getcwd()}/tmp.html"#f"{os.getcwd()}/Notes/html/test.html"
 
 		panel = wx.Panel(self)
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -59,8 +58,14 @@ class Application(wx.Frame):
 
 		panel.SetSizer(sizer)
 
-		self.edit.LoadFile(self.currentAMD)
-		self.wv.LoadURL(self.currentHTML)
+		if self.currentAMD != None:
+			try:
+				self.edit.LoadFile(self.currentAMD)
+			except:
+				fail(f"Unable to load the file: {self.currentAMD}")
+		
+		if self.currentAMD != None:
+			self.wv.LoadURL(self.html)
 
 		self.makeMenuBar()
 		self.SetSize((1280, 720))
@@ -111,11 +116,9 @@ class Application(wx.Frame):
 		error = False
 		keywords = (" ".join(keyword.kwlist) + " self").split()
 		for i, t in enumerate(tokens):
-			#if i == 20:
-			#	break
-			""" if t.id in [MD.LIST_ITEM_TEXT]:
-				debug(t) """
 			self.edit.StartStyling(t.begin, 0xff)
+			""" if t.id == MD.CODE:
+				debug(t) """
 			if not error:
 				if t.id == MD.ERROR:
 					self.edit.SetStyling(t.end - t.begin, INDICATOR.ERROR | STYLE.TEXT)
@@ -222,15 +225,14 @@ class Application(wx.Frame):
 			f.write(self.edit.GetValue().encode("UTF-8").replace(b"\r\n", b"\n")) # TODO line endings, encoding settings
 			f.close() 
 		except:
-			fail("Could not save file!")
-			self.SetStatusText(f"Could not save file: {self.currentAMD}!")
+			fail(f"Could not save file: {self.currentAMD}!")
 
 		self.wv.Reload()
 		self.edit.SetFocus()
 
 
 	def onOpen(self, event):
-		fd = wx.FileDialog(self, "Open...", wildcard="Markdown files (*.md)|*.md", style=wx.FD_OPEN)
+		fd = wx.FileDialog(self, "Open...", wildcard="AlmostMarkdown files (*.amd)|*.amd", style=wx.FD_OPEN)
 
 		if fd.ShowModal() == wx.ID_CANCEL:
 			return     
@@ -239,11 +241,10 @@ class Application(wx.Frame):
 		try:
 			f = open(pathname, 'r')
 			f.close()
+			self.currentAMD = pathname
 			self.edit.LoadFile(pathname)
-			parse(pathname)
-			bName = os.path.basename(os.path.splitext(pathname)[0])
-			html = f"{os.getcwd()}/Notes/html/{bName}.html"
-			self.wv.LoadURL(html)
+			self.onKeyUp(wx.KeyEvent(wx.wxEVT_NULL))
+			self.wv.LoadURL(self.html)
 		except IOError:
 			wx.LogError("Cannot open the specified file '%s'." % pathname)
 
