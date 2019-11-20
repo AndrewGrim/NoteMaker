@@ -115,6 +115,7 @@ class Application(wx.Frame):
 		tokens = lex(text)
 		error = False
 		keywords = (" ".join(keyword.kwlist) + " self").split()
+		# TODO highlight changes
 		for i, t in enumerate(tokens):
 			self.edit.StartStyling(t.begin, 0xff)
 			""" if t.id == MD.CODE:
@@ -255,10 +256,12 @@ class Application(wx.Frame):
 
 
 	def onShowHidden(self, event):
-		if self.edit.GetViewWhiteSpace() == 0:	
+		if self.edit.GetViewWhiteSpace() == 0:
+			self.edit.StyleSetSpec(3, "fore:#00ff00,back:#282828,face:Courier New,size:10")	
 			self.edit.SetViewWhiteSpace(True)
 			self.edit.SetViewEOL(True)
 		else:
+			self.edit.StyleSetSpec(3, "fore:#d5c4a1,back:#282828,face:Courier New,size:10")
 			self.edit.SetViewWhiteSpace(False)
 			self.edit.SetViewEOL(False)
 
@@ -278,7 +281,7 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(stc.STC_STYLE_LINENUMBER,  "fore:#928374,back:#212121,face:%(mono)s,size:%(size2)d" % faces)
 		self.edit.StyleSetSpec(0, "fore:#d5c4a1,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(1, "fore:#EFCD1E,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(3, "fore:#00FF00,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(3, "fore:#d5c4a1,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(4, "fore:#b8bb26,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(5, "fore:#81ac71,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(6, "fore:#ff00ff,back:#282828,face:%(mono)s,size:%(size)d" % faces)
