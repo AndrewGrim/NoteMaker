@@ -120,11 +120,11 @@ def lex(text: str) -> List[LexerToken]:
 					htmlAttribute = False
 				else:
 					htmlAttribute = True
-				tokens.append(Token(MD.HTML_ATTRIBUTE_TEXT, i, i + 1))
+				tokens.append(Token(MD.HTML_ATTRIBUTE_TEXT, i, i + 1, char))
 			elif htmlAttribute:
-				tokens.append(Token(MD.HTML_ATTRIBUTE_TEXT, i, i + 1))
+				tokens.append(Token(MD.HTML_ATTRIBUTE_TEXT, i, i + 1, char))
 			else:
-				tokens.append(Token(MD.HTML_TEXT, i, i + 1))
+				tokens.append(Token(MD.HTML_TEXT, i, i + 1, char))
 		elif listBlock:
 			try:
 				text[i + 1]
@@ -173,7 +173,7 @@ def lex(text: str) -> List[LexerToken]:
 					warn(f"Line: {line}, Index: {i} -> Improper list formatting! Expected a space after the '*' or digit!")
 				
 			if listItem:
-				tokens.append(Token(MD.LIST_ITEM_TEXT, i, i + 1, char))
+				tokens.append(Token(MD.LIST_ITEM_TEXT, i, i + 1, text[i]))
 			elif char == " ":
 				tokens.append(Token(MD.SPACE, i, i + 1))
 			elif char == "\t":

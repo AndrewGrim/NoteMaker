@@ -113,7 +113,7 @@ class Application(wx.Frame):
 		for i, t in enumerate(tokens):
 			#if i == 20:
 			#	break
-			""" if t.id in [MD.LINK_ALT_TEXT]:
+			""" if t.id in [MD.LIST_ITEM_TEXT]:
 				debug(t) """
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:

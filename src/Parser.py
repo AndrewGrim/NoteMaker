@@ -134,7 +134,6 @@ def parse(tokens: List[LexerToken]) -> None:
 			html.append(f'"><br>')
 		elif t.id == MD.IMAGE_PATH_TEXT:
 			html.append(t.content)
-
 		elif t.id == MD.ULIST_BEGIN:
 			html.append(f'<ul>')
 		elif t.id == MD.ULIST_END:
@@ -149,7 +148,14 @@ def parse(tokens: List[LexerToken]) -> None:
 			html.append(f'</li>')
 		elif t.id == MD.LIST_ITEM_TEXT:
 			html.append(t.content)
-
+		elif t.id == MD.HTML_BEGIN:
+			html.append("<")
+		elif t.id == MD.HTML_END:
+			html.append(">")
+		elif t.id == MD.HTML_TEXT:
+			html.append(t.content)
+		elif t.id == MD.HTML_ATTRIBUTE_TEXT:
+			html.append(t.content)
 		elif t.id == MD.TEXT:
 			html.append(t.content)
 		i += 1
