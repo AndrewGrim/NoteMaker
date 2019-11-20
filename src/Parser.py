@@ -15,11 +15,7 @@ from Debug import *
 LexerToken = NewType('Token', None)
 
 def generateHTML(html: List[str]):
-	try:
-		os.remove("tmp.html")
-	except Exception as e:
-		print(e)
-	f = open("tmp.html", "w")
+	f = open("Notes/tmp.html", "w")
 	f.write("""
 <!DOCTYPE html>
 <html lang="en">
@@ -38,7 +34,7 @@ def generateHTML(html: List[str]):
 	f.write("</html>")
 	f.close()
 
-
+# TODO inserting to many line breaks!
 def parse(tokens: List[LexerToken]) -> None:
 	html = []
 	i = 0
@@ -96,7 +92,7 @@ def parse(tokens: List[LexerToken]) -> None:
 		elif t.id == MD.CODE_END:
 			html.append("</code>")
 		elif t.id == MD.CODE:
-			pass#html.append(t.content) # somethings weird here, get double the characters
+			html.append(t.content)
 		elif t.id == MD.UNDERLINE_BEGIN:
 			html.append("<u>")
 		elif t.id == MD.UNDERLINE_END:

@@ -52,7 +52,7 @@ def lex(text: str) -> List[LexerToken]:
 				tokens.append(Token(MD.CODE_END, i, i + 1))
 			else:
 				tokens.append(Token(MD.CODE, i, i + 1, char))
-		if heading:
+		elif heading:
 			if char == "\n":
 				tokens.append(Token(MD.HEADING_END, i, i + 1))
 				heading = False
