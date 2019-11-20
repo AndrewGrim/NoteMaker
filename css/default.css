@@ -417,6 +417,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 .markdown-body code,
 .markdown-body pre {
 	font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
+	color: #787726;
+	background-color: #FEFFCC;
 	font-size: 12px;
 }
 
