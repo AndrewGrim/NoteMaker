@@ -115,11 +115,9 @@ class Application(wx.Frame):
 		tokens = lex(text)
 		error = False
 		keywords = (" ".join(keyword.kwlist) + " self").split()
-		# TODO highlight changes
+		# TODO highlight changes too often it looks off
 		for i, t in enumerate(tokens):
 			self.edit.StartStyling(t.begin, 0xff)
-			""" if t.id == MD.CODE:
-				debug(t) """
 			if not error:
 				if t.id == MD.ERROR:
 					self.edit.SetStyling(t.end - t.begin, INDICATOR.ERROR | STYLE.TEXT)
@@ -175,24 +173,6 @@ class Application(wx.Frame):
 			elif t.id == MD.NEWLINE:
 				error = False
 
-		# Doesnt work all that well
-		# most of the keywords do get highlighted but not all of them
-		# initially i though this was because i had a ` in my code which would disable the highlight
-		# but this doesnt seem to be the case	
-		"""codeBegin = -1
-		codeEnd = -1
-		for i, t in enumerate(tokens):
-			if t.id == MD.CODE_BEGIN:
-				codeBegin = i
-			elif t.id == MD.CODE_END:
-				codeEnd = i
-		print("code: ", codeBegin)
-		print("len: ", self.edit.GetLength())
-		for key in keywords:
-			begin = self.edit.FindText(codeBegin, codeEnd, key)
-			if begin != -1:
-				self.edit.StartStyling(begin, 0xff)
-				self.edit.SetStyling(len(key), 6)"""
 		end = time.time()
 		info(f"Lex and highlight time: {round(end - start, 2)}")
 		start = time.time()
