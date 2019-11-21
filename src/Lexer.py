@@ -23,6 +23,7 @@ def lex(text: str) -> List[LexerToken]:
 	i = 0
 	heading = False
 	code = False
+	codeBlock = False
 	line = 0
 	check = False
 
@@ -46,10 +47,14 @@ def lex(text: str) -> List[LexerToken]:
 		if char == "\n":
 			line += 1
 
-		if code:
+		if code or codeBlock:
 			if char == "`":
-				code = False
-				tokens.append(Token(MD.CODE_END, i, i + 1))
+				if codeBlock:
+					codeBlock = False
+					tokens.append(Token(MD.CODE_BLOCK_END, i, i + 1))
+				else:
+					code = False
+					tokens.append(Token(MD.CODE_END, i, i + 1))
 			else:
 				tokens.append(Token(MD.CODE, i, i + 1, char))
 		elif heading:
@@ -217,8 +222,14 @@ def lex(text: str) -> List[LexerToken]:
 			tokens.append(Token(MD.HEADING, i - hCount - 1, i + 1))
 			heading = True
 		elif char == "`":
-			tokens.append(Token(MD.CODE_BEGIN, i, i + 1))
-			code = True
+			if text[i - 1].lower() == "f":
+				tokens.pop()
+				tokens.append(Token(MD.FORMAT, i - 1, i))
+				tokens.append(Token(MD.CODE_BLOCK_BEGIN, i, i + 1))
+				codeBlock = True
+			else:
+				tokens.append(Token(MD.CODE_BEGIN, i, i + 1))
+				code = True
 		elif char == ">":
 			tokens.append(Token(MD.BLOCKQUOTE_BEGIN, i, i + 1))
 			block = True

@@ -91,6 +91,10 @@ def parse(tokens: List[LexerToken]) -> None:
 			html.append("<code>")
 		elif t.id == MD.CODE_END:
 			html.append("</code>")
+		elif t.id == MD.CODE_BLOCK_BEGIN:
+			html.append("<code><pre>")
+		elif t.id == MD.CODE_BLOCK_END:
+			html.append("</pre></code>")
 		elif t.id == MD.CODE:
 			html.append(t.content)
 		elif t.id == MD.UNDERLINE_BEGIN:

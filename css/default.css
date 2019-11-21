@@ -754,7 +754,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 .markdown-body .highlight pre,
 .markdown-body pre {
-	background-color: #f6f8fa;
+	tab-size: 4;
+	background-color: #FEFFCC;
 	border-radius: 3px;
 	font-size: 85%;
 	line-height: 1.45;

@@ -44,8 +44,9 @@ class Application(wx.Frame):
 		self.edit.SetBackgroundColour("WHITE")
 		self.edit.SetWhitespaceSize(2)
 		# TODO implement line and column in status bar, and line endings 
-		self.edit.SetTabWidth(4)
-		#self.edit.SetUseTabs(True) true by default make it an option
+		self.edit.SetTabWidth(2)
+		self.edit.SetIndent(2)
+		self.edit.SetUseTabs(False) # true by default make it an option
 		self.setupStyling()
 		self.edit.Bind(wx.EVT_KEY_UP, self.onKeyUp)
 		self.edit.Bind(stc.EVT_STC_UPDATEUI, self.onUpdateUI)
@@ -126,7 +127,7 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.HEADING)
 				elif t.id in [MD.SPACE, MD.TAB, MD.NEWLINE]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.HIDDEN)
-				elif t.id in [MD.CODE, MD.CODE_BEGIN, MD.CODE_END]:
+				elif t.id in [MD.CODE, MD.CODE_BEGIN, MD.CODE_END, MD.CODE_BLOCK_BEGIN, MD.CODE_BLOCK_END]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.CODE)
 				elif t.id == MD.BLOCKQUOTE_BEGIN:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
@@ -168,6 +169,8 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.HTML)
 				elif t.id == MD.HTML_ATTRIBUTE_TEXT:
 					self.edit.SetStyling(t.end - t.begin, STYLE.HTML_ATTRIBUTE)
+				elif t.id == MD.FORMAT:
+					self.edit.SetStyling(t.end - t.begin, STYLE.FORMAT)
 				else:
 					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
 			elif t.id == MD.NEWLINE:
@@ -201,14 +204,28 @@ class Application(wx.Frame):
 
 
 	def onSave(self, event):
-		try:
+		if self.currentAMD != None:
 			f = open(self.currentAMD, "wb")
 			f.write(self.edit.GetValue().encode("UTF-8").replace(b"\r\n", b"\n")) # TODO line endings, encoding settings
 			f.close() 
-		except:
-			fail(f"Could not save file: {self.currentAMD}!")
+		else:
+			fileDialog = wx.FileDialog(self, "Save As...", wildcard="AlmostMarkdown (*.amd)|*.amd", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 
-		self.wv.Reload()
+			if fileDialog.ShowModal() == wx.ID_CANCEL:
+				return     
+
+			self.currentAMD = fileDialog.GetPath()
+			try:
+				f = open(self.currentAMD, "wb")
+				f.write(self.edit.GetValue().encode("UTF-8").replace(b"\r\n", b"\n")) # TODO line endings, encoding settings
+				f.close() 
+			except IOError:
+				fail(f"Cannot save current data in file '{self.currentAMD}'.")
+
+		if self.currentAMD != None:
+			self.wv.LoadURL(self.html)
+		else:
+			self.onReload(None)
 		self.edit.SetFocus()
 
 
@@ -271,6 +288,7 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(13, "fore:#cb8296,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(14, "fore:#cb8296,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(15, "fore:#d9a62e,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(16, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		# maybe have additional styles for the inside which is bold/underlined
 		# and maybe lex these same way that i do code?
 		self.edit.StyleSetSpec(8, "fore:#d9a62e,bold,size:%(size)d" % faces)

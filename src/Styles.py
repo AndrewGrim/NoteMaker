@@ -15,6 +15,7 @@ class STYLE(IntEnum):
 	LINK = 13
 	HTML = 14
 	HTML_ATTRIBUTE = 15
+	FORMAT = 16
 
 class INDICATOR(IntEnum):
 	ERROR = 32
