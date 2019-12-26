@@ -35,7 +35,7 @@ class Application(wx.Frame):
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
 
 		self.edit = stc.StyledTextCtrl(panel)
-		self.edit.SetLexer(stc.STC_LEX_MARKDOWN)
+		#self.edit.SetLexer(stc.STC_LEX_MARKDOWN)
 		self.edit.SetMarginType(1, stc.STC_MARGIN_NUMBER)
 		self.edit.SetMarginWidth(1, 30)
 		self.edit.SetWrapMode(stc.STC_WRAP_WORD)
@@ -116,7 +116,6 @@ class Application(wx.Frame):
 		tokens = lex(text)
 		error = False
 		keywords = (" ".join(keyword.kwlist) + " self").split()
-		# TODO highlight changes too often it looks off
 		for i, t in enumerate(tokens):
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:

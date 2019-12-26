@@ -140,3 +140,5 @@ advanced_supported.html
 ParseMarkdown.exe
 tmp.html
 src/ParseMarkdown.py
+
+*.exe
