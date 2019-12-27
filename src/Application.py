@@ -24,12 +24,17 @@ class Application(wx.Frame):
 			os.system("color")
 
 		args = sys.argv
+		self.exeDir = args[0].replace(os.path.basename(args[0]), "")
+
+
 		self.currentAMD = None
-		self.html = f"{os.getcwd()}/Notes/tmp.html"
-		f = open(self.html, "w")
-		f.close()
 		if len(args) == 2:
 			self.currentAMD = args[1]
+			self.html = f"{os.getcwd()}/tmp.html"
+		else:
+			self.html = f"{os.getcwd()}/Notes/tmp.html"
+			f = open(self.html, "w")
+			f.close()
 
 		panel = wx.Panel(self)
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -66,12 +71,20 @@ class Application(wx.Frame):
 				fail(f"Unable to load the file: {self.currentAMD}")
 		
 		if self.currentAMD != None:
-			self.wv.LoadURL(self.html)
+			try:
+				self.wv.LoadURL(self.html)
+				print(self.html)
+				print(os.getcwd())
+			except:
+				fail(f"Unable to load the html file: {self.html}")
 
 		self.makeMenuBar()
 		self.SetSize((1280, 720))
 		self.Center()
-		icon = wx.Icon("images/amd.png")
+		if os.path.exists("images/amd.png"):
+			icon = wx.Icon("images/amd.png")
+		else:
+			icon = wx.Icon(args[0].replace(os.path.basename(args[0]), "images/amd.png"))
 		self.SetIcon(icon)
 		self.SetTitle("NoteMaker")
 		self.status = self.CreateStatusBar()
@@ -82,6 +95,7 @@ class Application(wx.Frame):
 
 		self.onKeyUp(wx.KeyEvent(wx.wxEVT_NULL))
 		self.Bind(wx.EVT_SIZE, self.onSize)
+		self.Bind(wx.EVT_CLOSE, self.onClose)
 		self.Show()
 
 
@@ -178,7 +192,7 @@ class Application(wx.Frame):
 		end = time.time()
 		info(f"Lex and highlight time: {round(end - start, 2)}")
 		start = time.time()
-		parse(tokens)
+		parse(tokens, self.html, self.exeDir)
 		end = time.time()
 		info(f"Parse time: {round(end - start, 2)}")
 		event.Skip()
@@ -345,6 +359,11 @@ class Application(wx.Frame):
 		self.edit.SetSelBackground(True, "#384539")
 		self.edit.SetCaretForeground("WHITE")
 		self.edit.SetBackgroundColour("GRAY")
+
+
+	def onClose(self, event):
+		os.remove(self.html)
+		sys.exit()
 
 
 if __name__ == '__main__':

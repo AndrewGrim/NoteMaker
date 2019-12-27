@@ -14,8 +14,8 @@ from Debug import *
 
 LexerToken = NewType('Token', None)
 
-def generateHTML(html: List[str]):
-	f = open("Notes/tmp.html", "w")
+def generateHTML(htmlTags: List[str], html: str, css: str) -> None:
+	f = open(html, "w")
 	f.write("""
 <!DOCTYPE html>
 <html lang="en">
@@ -23,11 +23,14 @@ def generateHTML(html: List[str]):
 <title>Document</title>
 </head>
 	""")
-	style = open("css/default.css", "r").read()
+	if os.path.exists("css/default.css"):
+		style = open("css/default.css", "r").read()
+	else:
+		style = open(f"{css}css/default.css", "r").read()
 	f.write(f"<style>\n{style}\n</style>\n")
 	f.write("<body>")
 	f.write('<div class="markdown-body">')
-	for item in html:
+	for item in htmlTags:
 		f.write(item)
 	f.write("</div>")
 	f.write("</body>")
@@ -35,16 +38,16 @@ def generateHTML(html: List[str]):
 	f.close()
 
 # TODO inserting to many line breaks!
-def parse(tokens: List[LexerToken]) -> None:
-	html = []
+def parse(tokens: List[LexerToken], html: str, css: str) -> None:
+	htmlTags = []
 	i = 0
 	linkText = ""
 	while i < len(tokens):
 		t = tokens[i]
 		if t.id == MD.HEADING:
-			html.append(f"<h{t.end - t.begin - 2}>")
+			htmlTags.append(f"<h{t.end - t.begin - 2}>")
 		elif t.id == MD.HEADING_TEXT:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.HEADING_END:
 			token = None
 			tt = None
@@ -54,109 +57,109 @@ def parse(tokens: List[LexerToken]) -> None:
 				if token == MD.HEADING:
 					tt = tokens[i - index]
 				index += 1
-			html.append(f"</h{tt.end - tt.begin - 2}>")
+			htmlTags.append(f"</h{tt.end - tt.begin - 2}>")
 		elif t.id == MD.CHECKED:
-			html.append(f'<input type="checkbox" checked>')
+			htmlTags.append(f'<input type="checkbox" checked>')
 		elif t.id == MD.UNCHECKED:
-			html.append(f'<input type="checkbox">')
+			htmlTags.append(f'<input type="checkbox">')
 		elif t.id == MD.CHECK_TEXT:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.CHECK_END:
-			html.append("<br>")
+			htmlTags.append("<br>")
 		elif t.id == MD.BOLD_BEGIN:
-			html.append("<b>")
+			htmlTags.append("<b>")
 		elif t.id == MD.BOLD_END:
-			html.append("</b>")
+			htmlTags.append("</b>")
 		elif t.id == MD.BOLD:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.NEWLINE:
-			html.append("\n<br>")
+			htmlTags.append("\n<br>")
 		elif t.id == MD.SPACE:
-			html.append(" ")
+			htmlTags.append(" ")
 		elif t.id == MD.TAB:
-			html.append("\t")
+			htmlTags.append("\t")
 		elif t.id == MD.ITALIC_BEGIN:
-			html.append("<i>")
+			htmlTags.append("<i>")
 		elif t.id == MD.ITALIC_END:
-			html.append("</i>")
+			htmlTags.append("</i>")
 		elif t.id == MD.ITALIC:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.STRIKE_BEGIN:
-			html.append("<strike>")
+			htmlTags.append("<strike>")
 		elif t.id == MD.STRIKE_END:
-			html.append("</strike>")
+			htmlTags.append("</strike>")
 		elif t.id == MD.STRIKE:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.CODE_BEGIN:
-			html.append("<code>")
+			htmlTags.append("<code>")
 		elif t.id == MD.CODE_END:
-			html.append("</code>")
+			htmlTags.append("</code>")
 		elif t.id == MD.CODE_BLOCK_BEGIN:
-			html.append("<code><pre>")
+			htmlTags.append("<code><pre>")
 		elif t.id == MD.CODE_BLOCK_END:
-			html.append("</pre></code>")
+			htmlTags.append("</pre></code>")
 		elif t.id == MD.CODE:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.UNDERLINE_BEGIN:
-			html.append("<u>")
+			htmlTags.append("<u>")
 		elif t.id == MD.UNDERLINE_END:
-			html.append("</u>")
+			htmlTags.append("</u>")
 		elif t.id == MD.UNDERLINE:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.HORIZONTAL_RULE:
-			html.append("<hr>")
+			htmlTags.append("<hr>")
 		elif t.id == MD.BLOCKQUOTE_BEGIN:
-			html.append("<blockquote>")
+			htmlTags.append("<blockquote>")
 		elif t.id == MD.BLOCKQUOTE_END:
-			html.append("</blockquote>")
+			htmlTags.append("</blockquote>")
 		elif t.id == MD.BLOCKQUOTE_TEXT:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.LINK_ALT_BEGIN:
-			html.append('<a ')
+			htmlTags.append('<a ')
 		elif t.id == MD.LINK_ALT_TEXT:
 			linkText += t.content
 		elif t.id == MD.LINK_PATH_BEGIN:
-			html.append('href="')
+			htmlTags.append('href="')
 		elif t.id == MD.LINK_PATH_END:
-			html.append(f'">{linkText}</a><br>')
+			htmlTags.append(f'">{linkText}</a><br>')
 			linkText = ""
 		elif t.id == MD.LINK_PATH_TEXT:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.IMAGE_ALT_BEGIN:
-			html.append('<img alt="')
+			htmlTags.append('<img alt="')
 		elif t.id == MD.IMAGE_ALT_END:
-			html.append('" ')
+			htmlTags.append('" ')
 		elif t.id == MD.IMAGE_ALT_TEXT:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.IMAGE_PATH_BEGIN:
-			html.append('src="')
+			htmlTags.append('src="')
 		elif t.id == MD.IMAGE_PATH_END:
-			html.append(f'"><br>')
+			htmlTags.append(f'"><br>')
 		elif t.id == MD.IMAGE_PATH_TEXT:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.ULIST_BEGIN:
-			html.append(f'<ul>')
+			htmlTags.append(f'<ul>')
 		elif t.id == MD.ULIST_END:
-			html.append(f'</ul>')
+			htmlTags.append(f'</ul>')
 		elif t.id == MD.OLIST_BEGIN:
-			html.append(f'<ol>')
+			htmlTags.append(f'<ol>')
 		elif t.id == MD.OLIST_END:
-			html.append(f'</ol>')
+			htmlTags.append(f'</ol>')
 		elif t.id == MD.LIST_ITEM_BEGIN:
-			html.append(f'<li>')
+			htmlTags.append(f'<li>')
 		elif t.id == MD.LIST_ITEM_END:
-			html.append(f'</li>')
+			htmlTags.append(f'</li>')
 		elif t.id == MD.LIST_ITEM_TEXT:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.HTML_BEGIN:
-			html.append("<")
+			htmlTags.append("<")
 		elif t.id == MD.HTML_END:
-			html.append(">")
+			htmlTags.append(">")
 		elif t.id == MD.HTML_TEXT:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.HTML_ATTRIBUTE_TEXT:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		elif t.id == MD.TEXT:
-			html.append(t.content)
+			htmlTags.append(t.content)
 		i += 1
-	generateHTML(html)
+	generateHTML(htmlTags, html, css)
