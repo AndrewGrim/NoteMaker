@@ -114,6 +114,10 @@ def parse(tokens: List[LexerToken], html: str, css: str) -> None:
 			htmlTags.append(f'<div class="flow">{t.content}</div>')
 		elif t.id == MD.CODEBLOCK_DIGIT:
 			htmlTags.append(f'<div class="digit">{t.content}</div>')
+		elif t.id == MD.CODEBLOCK_CLASS:
+			htmlTags.append(f'<div class="class">{t.content}</div>')
+		elif t.id == MD.CODEBLOCK_FUNCTION:
+			htmlTags.append(f'<div class="function">{t.content}</div>')
 		elif t.id == MD.UNDERLINE_BEGIN:
 			htmlTags.append("<u>")
 		elif t.id == MD.UNDERLINE_END:

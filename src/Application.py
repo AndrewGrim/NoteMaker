@@ -196,6 +196,10 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_FLOW)
 				elif t.id == MD.CODEBLOCK_DIGIT:
 					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_DIGIT)
+				elif t.id == MD.CODEBLOCK_CLASS:
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_CLASS)
+				elif t.id == MD.CODEBLOCK_FUNCTION:
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_FUNCTION)
 				elif t.id == MD.CODEBLOCK:
 					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_TEXT)
 				else:
@@ -352,7 +356,7 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(19, "fore:#F9FFE0,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(20, "fore:#d69d73,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(21, "fore:#57a64a,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(22, "fore:#dcdcaa,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(22, "fore:#4ec9b0,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(23, "fore:#4ec9b0,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(24, "fore:#EFCD1E,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(25, "fore:#d8a0df,back:#282828,face:%(mono)s,size:%(size)d" % faces)

@@ -97,6 +97,26 @@ def lex(text: str) -> List[LexerToken]:
 								i += len(k)
 								key = True
 
+								if k == "class":
+									i += 1
+									tokens.append(Token(MD.SPACE, i, i + 1, text[i]))
+									i += 1
+									index = 1
+									while text[i + index] != ":":
+										index += 1
+									tokens.append(Token(MD.CODEBLOCK_CLASS, i, i + index + 1, text[i:i + index]))
+									i += index - 1
+								elif k == "def":
+									i += 1
+									tokens.append(Token(MD.SPACE, i, i + 1, text[i]))
+									i += 1
+									index = 1
+									while text[i + index] != "(":
+										index += 1
+									tokens.append(Token(MD.CODEBLOCK_FUNCTION, i, i + index + 1, text[i:i + index]))
+									i += index - 1
+								
+
 						for t in types:
 							if match_tag(t, text, i, data_type=True):
 								tokens.append(Token(MD.CODEBLOCK_TYPE, i, i + len(t) + 1, text[i] + t))

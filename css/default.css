@@ -1027,3 +1027,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 	color: #b5ce92;
 	display: inline;
 }
+
+.class {
+	color: #4ec9b0;
+	display: inline;
+}
+
+.function {
+	color: #4ec9b0;
+	display: inline;
+}
