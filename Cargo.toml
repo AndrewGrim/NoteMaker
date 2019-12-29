@@ -1,0 +1,13 @@
+[package]
+name = "lexer"
+version = "0.1.0"
+authors = ["AndrewGrim <39337035+AndrewGrim@users.noreply.github.com>"]
+edition = "2018"
+
+[lib]
+name = "keywords"
+crate-type = ["cdylib"]
+
+[dependencies.pyo3]
+version = "*"
+features = ["extension-module"]
