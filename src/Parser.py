@@ -102,6 +102,12 @@ def parse(tokens: List[LexerToken], html: str, css: str) -> None:
 			htmlTags.append(t.content)
 		elif t.id == MD.CODEBLOCK:
 			htmlTags.append(t.content)
+		elif t.id == MD.FORMATBLOCK_BEGIN:
+			htmlTags.append('<pre style="color: #787726; background-color: #FEFFCC;">')
+		elif t.id == MD.FORMATBLOCK_END:
+			htmlTags.append("</pre>")
+		elif t.id == MD.FORMATBLOCK_TEXT:
+			htmlTags.append(t.content)
 		elif t.id == MD.CODEBLOCK_KEYWORD:
 			htmlTags.append(f'<div class="keyword">{t.content}</div>')
 		elif t.id == MD.CODEBLOCK_SYMBOL:

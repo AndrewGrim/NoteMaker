@@ -56,6 +56,7 @@ def lex(text: str) -> List[LexerToken]:
 	heading = False
 	code = False
 	codeBlock = False
+	formatBlock = False
 	line = 0
 	check = False
 
@@ -74,6 +75,7 @@ def lex(text: str) -> List[LexerToken]:
 	listBlock = False
 	listItem = False
 	listIndex = []
+
 	while i < len(text):
 		char = text[i]
 		if char == "\n":
@@ -147,6 +149,12 @@ def lex(text: str) -> List[LexerToken]:
 						tokens.append(Token(MD.CODEBLOCK, i, i + 1, char))
 				else:
 					tokens.append(Token(MD.CODE, i, i + 1, char))
+		elif formatBlock:
+			if char == "`":
+				tokens.append(Token(MD.FORMATBLOCK_END, i, i + 1))
+				formatBlock = False
+			else:
+				tokens.append(Token(MD.FORMATBLOCK_TEXT, i, i + 1, char))
 		elif heading:
 			if char == "\n":
 				tokens.append(Token(MD.HEADING_END, i, i + 1))
@@ -311,8 +319,19 @@ def lex(text: str) -> List[LexerToken]:
 			if text[i - 1].lower() == "f":
 				tokens.pop()
 				tokens.append(Token(MD.FORMAT, i - 1, i))
-				tokens.append(Token(MD.CODEBLOCK_BEGIN, i, i + 1))
-				codeBlock = True
+				if text[i + 1] != "\n":
+					tokens.append(Token(MD.CODEBLOCK_BEGIN, i, i + 1))
+					codeBlock = True
+					index = 1
+					language = ""
+					while text[i + index] != "\n":
+						language += text[i + index]
+						index += 1
+					tokens.append(Token(MD.FORMAT, i + 1, i + index + 1, language))
+					i += index - 1
+				else:
+					tokens.append(Token(MD.FORMATBLOCK_BEGIN, i, i + 1))
+					formatBlock = True
 			else:
 				tokens.append(Token(MD.CODE_BEGIN, i, i + 1))
 				code = True
