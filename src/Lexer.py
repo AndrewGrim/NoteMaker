@@ -23,7 +23,7 @@ def match_tag(tag, text, i, keyword=False, data_type=False):
 			matched = False
 			return matched
 	if keyword:
-		if matched and text[i + num + 2] not in [" ", "\n", "\t"]:
+		if matched and text[i + num + 2] not in [" ", "\n", "\t", "."]:
 			matched = False
 			return matched
 	if data_type:
@@ -83,7 +83,7 @@ def lex(text: str) -> List[LexerToken]:
 			if char == "`":
 				if codeBlock:
 					codeBlock = False
-					tokens.append(Token(MD.CODE_BLOCK_END, i, i + 1))
+					tokens.append(Token(MD.CODEBLOCK_END, i, i + 1))
 				else:
 					code = False
 					tokens.append(Token(MD.CODE_END, i, i + 1))
@@ -313,7 +313,7 @@ def lex(text: str) -> List[LexerToken]:
 			if text[i - 1].lower() == "f":
 				tokens.pop()
 				tokens.append(Token(MD.FORMAT, i - 1, i))
-				tokens.append(Token(MD.CODE_BLOCK_BEGIN, i, i + 1))
+				tokens.append(Token(MD.CODEBLOCK_BEGIN, i, i + 1))
 				codeBlock = True
 			else:
 				tokens.append(Token(MD.CODE_BEGIN, i, i + 1))

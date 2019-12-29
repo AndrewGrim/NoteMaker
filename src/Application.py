@@ -140,7 +140,7 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.HEADING)
 				elif t.id in [MD.SPACE, MD.TAB, MD.NEWLINE]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.HIDDEN)
-				elif t.id in [MD.CODE, MD.CODE_BEGIN, MD.CODE_END, MD.CODE_BLOCK_BEGIN, MD.CODE_BLOCK_END]:
+				elif t.id in [MD.CODE, MD.CODE_BEGIN, MD.CODE_END, MD.CODEBLOCK_BEGIN, MD.CODEBLOCK_END]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.CODE)
 				elif t.id == MD.BLOCKQUOTE_BEGIN:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
@@ -223,9 +223,9 @@ class Application(wx.Frame):
 		# codeBegin = -1
 		# codeEnd = -1
 		# for i, t in enumerate(tokens):
-		# 	if t.id == MD.CODE_BLOCK_BEGIN:
+		# 	if t.id == MD.CODEBLOCK_BEGIN:
 		# 		codeBegin = i
-		# 	elif t.id == MD.CODE_BLOCK_END:
+		# 	elif t.id == MD.CODEBLOCK_END:
 		# 		codeEnd = i
 		# print("code: ", codeBegin)
 		# print("len: ", self.edit.GetLength())

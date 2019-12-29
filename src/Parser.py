@@ -94,10 +94,10 @@ def parse(tokens: List[LexerToken], html: str, css: str) -> None:
 			htmlTags.append("<code>")
 		elif t.id == MD.CODE_END:
 			htmlTags.append("</code>")
-		elif t.id == MD.CODE_BLOCK_BEGIN:
-			htmlTags.append("<code><pre>")
-		elif t.id == MD.CODE_BLOCK_END:
-			htmlTags.append("</pre></code>")
+		elif t.id == MD.CODEBLOCK_BEGIN:
+			htmlTags.append("<pre>")
+		elif t.id == MD.CODEBLOCK_END:
+			htmlTags.append("</pre>")
 		elif t.id == MD.CODE:
 			htmlTags.append(t.content)
 		elif t.id == MD.CODEBLOCK:
