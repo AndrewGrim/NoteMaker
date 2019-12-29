@@ -185,18 +185,26 @@ class Application(wx.Frame):
 				elif t.id == MD.FORMAT:
 					self.edit.SetStyling(t.end - t.begin, STYLE.FORMAT)
 				elif t.id == MD.CODEBLOCK_KEYWORD:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODE_KEYWORD)
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_KEYWORD)
 				elif t.id == MD.CODEBLOCK_SYMBOL:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODE_SYMBOL)
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_SYMBOL)
+				elif t.id == MD.CODEBLOCK_STRING:
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_STRING)
+				elif t.id == MD.CODEBLOCK_TYPE:
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_TYPE)
+				elif t.id == MD.CODEBLOCK_FLOW:
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_FLOW)
+				elif t.id == MD.CODEBLOCK_DIGIT:
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_DIGIT)
 				elif t.id == MD.CODEBLOCK:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODE_TEXT)
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_TEXT)
 				else:
 					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
 			elif t.id == MD.NEWLINE:
 				error = False
 
-		r = rustKey.find_keywords(self.currentAMD)
-		print(r)
+		# r = rustKey.find_keywords(self.currentAMD)
+		# print(r)
 
 		# for i, t in enumerate(tokens):
 		# 	if t.begin == 78 - 1:
@@ -330,6 +338,8 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(5, "fore:#81ac71,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(6, "fore:#ff00ff,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(7, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(8, "fore:#d9a62e,bold,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(9, "fore:#d9a62e,underline,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(11, "fore:#7d9d90,italic,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(12, "fore:#cb8296,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(13, "fore:#cb8296,size:%(size)d" % faces)
@@ -337,13 +347,18 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(15, "fore:#d9a62e,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(16, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 
-		self.edit.StyleSetSpec(17, "fore:#3069B3,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(18, "fore:#8BA7CC,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(17, "fore:#569cd6,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(18, "fore:#9cdcfe,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(19, "fore:#F9FFE0,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(20, "fore:#d69d73,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(21, "fore:#57a64a,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(22, "fore:#dcdcaa,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(23, "fore:#4ec9b0,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(24, "fore:#EFCD1E,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(25, "fore:#d8a0df,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(26, "fore:#b5ce92,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		# maybe have additional styles for the inside which is bold/underlined
 		# and maybe lex these same way that i do code?
-		self.edit.StyleSetSpec(8, "fore:#d9a62e,bold,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(9, "fore:#d9a62e,underline,size:%(size)d" % faces)
 		self.edit.IndicatorSetStyle(0, stc.STC_INDIC_SQUIGGLE)
 		self.edit.IndicatorSetForeground(0, wx.RED)
 

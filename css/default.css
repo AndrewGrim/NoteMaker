@@ -414,11 +414,16 @@ OTHER DEALINGS IN THE SOFTWARE.
 	margin-left: 0;
 }
 
-.markdown-body code,
-.markdown-body pre {
+.markdown-body code {
 	font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
 	color: #787726;
 	background-color: #FEFFCC;
+	font-size: 12px;
+}
+.markdown-body pre {
+	font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
+	color: #F9FFE0;
+	background-color: #282828;
 	font-size: 12px;
 }
 
@@ -755,7 +760,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 .markdown-body .highlight pre,
 .markdown-body pre {
 	tab-size: 4;
-	background-color: #FEFFCC;
+	background-color: #282828;
 	border-radius: 3px;
 	font-size: 85%;
 	line-height: 1.45;
@@ -994,11 +999,31 @@ OTHER DEALINGS IN THE SOFTWARE.
 }
 
 .keyword {
-	color: red;
+	color: #569cd6;
 	display: inline;
 }
 
 .symbol {
-	color: red;
+	color: #9cdcfe;
+	display: inline;
+}
+
+.string {
+	color: #d69d73;
+	display: inline;
+}
+
+.type {
+	color: #EFCD1E;
+	display: inline;
+}
+
+.flow {
+	color: #d8a0df;
+	display: inline;
+}
+
+.digit {
+	color: #b5ce92;
 	display: inline;
 }

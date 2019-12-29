@@ -2,7 +2,6 @@ import os
 import sys
 from enum import IntEnum
 import typing
-import keyword
 from typing import List
 from typing import Union
 from typing import Tuple
@@ -15,7 +14,7 @@ from Debug import *
 
 LexerToken = NewType('Token', None)
 
-def match_tag(tag, text, i, keyword=False):
+def match_tag(tag, text, i, keyword=False, data_type=False):
 	assert len(tag) > 0, "Tag length must be greater than zero!"
 
 	matched = True
@@ -27,6 +26,10 @@ def match_tag(tag, text, i, keyword=False):
 		if matched and text[i + num + 2] not in [" ", "\n", "\t"]:
 			matched = False
 			return matched
+	if data_type:
+		if matched and text[i + num + 2] not in [":", ")", "\n", " "]:
+			matched = False
+			return matched
 
 	return matched
 
@@ -36,7 +39,18 @@ def lex(text: str) -> List[LexerToken]:
 		text = open(text, "r").read()
 
 	tokens = []
-	keywords = (" ".join(keyword.kwlist) + " self None str int bool float").split()
+	keywords = [
+		'as', 'assert', 'async', 'await', 'class', 'continue', 'def', 'del',  
+		'from', 'global',  'import',  'lambda', 'nonlocal', 'self',
+	]
+	flow = [
+		'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield', 'if', 
+		'in', 'is', 'elif', 'else', 'except', 'finally', 'for', 'and', 'break', 
+		'not', 
+	]
+	types = [
+		"None", "str", "int", "bool", "float", "False", "True",
+	]
 
 	i = 0
 	heading = False
@@ -76,16 +90,37 @@ def lex(text: str) -> List[LexerToken]:
 			else:
 				if codeBlock:
 					key = False
-					if text[i] in [" ", "\t", "\n", "`"]:
+					if text[i] in [" ", "\t", "\n", "`",]:
 						for k in keywords:
 							if match_tag(k, text, i, keyword=True):
-								tokens.append(Token(MD.CODEBLOCK_KEYWORD, i, i + len(k) + 1, k))
+								tokens.append(Token(MD.CODEBLOCK_KEYWORD, i, i + len(k) + 1, text[i] + k))
 								i += len(k)
 								key = True
+
+						for t in types:
+							if match_tag(t, text, i, data_type=True):
+								tokens.append(Token(MD.CODEBLOCK_TYPE, i, i + len(t) + 1, text[i] + t))
+								i += len(t)
+								key = True
+
+						for f in flow:
+							if match_tag(f, text, i, keyword=True):
+								tokens.append(Token(MD.CODEBLOCK_FLOW, i, i + len(f) + 1, text[i] + f))
+								i += len(f)
+								key = True
+
 						if not key:
 							tokens.append(Token(MD.CODEBLOCK, i, i + 1, char))
-					elif char in [";", ":", "(", ")", "{", "}", "[", "]", ".", ",", "+", "-", "*", "/", "<", ">", "\\", "\"", "'", "=", "!"]:
+					elif char in ["\"", "'"]:
+						index = 1
+						while text[i + index] not in ["\"", "'"]:
+							index += 1
+						tokens.append(Token(MD.CODEBLOCK_STRING, i, i + index + 1, text[i:i + index + 1]))
+						i += index
+					elif char in [";", ":", "(", ")", "{", "}", "[", "]", ".", ",", "+", "-", "*", "/", "<", ">", "\\", "&", "=", "!", "%"]:
 						tokens.append(Token(MD.CODEBLOCK_SYMBOL, i, i + 1, char))
+					elif char.isdigit():
+						tokens.append(Token(MD.CODEBLOCK_DIGIT, i, i + 1, char))
 					else:
 						tokens.append(Token(MD.CODEBLOCK, i, i + 1, char))
 				else:
