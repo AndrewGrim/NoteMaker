@@ -337,9 +337,9 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(15, "fore:#d9a62e,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(16, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 
-		self.edit.StyleSetSpec(17, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(18, "fore:#81ac71,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(19, "fore:#d5c4a1,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(17, "fore:#3069B3,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(18, "fore:#8BA7CC,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(19, "fore:#F9FFE0,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		# maybe have additional styles for the inside which is bold/underlined
 		# and maybe lex these same way that i do code?
 		self.edit.StyleSetSpec(8, "fore:#d9a62e,bold,size:%(size)d" % faces)

@@ -15,14 +15,16 @@ from Debug import *
 
 LexerToken = NewType('Token', None)
 
-def check_for_tag(tag, text, i):
+def match_tag(tag, text, i, keyword=False):
 	assert len(tag) > 0, "Tag length must be greater than zero!"
-
-	tag_match = []
 
 	matched = True
 	for num in range(len(tag)):
 		if text[i + num + 1] != tag[num]:
+			matched = False
+			return matched
+	if keyword:
+		if matched and text[i + num + 2] not in [" ", "\n", "\t"]:
 			matched = False
 			return matched
 
@@ -76,7 +78,7 @@ def lex(text: str) -> List[LexerToken]:
 					key = False
 					if text[i] in [" ", "\t", "\n", "`"]:
 						for k in keywords:
-							if check_for_tag(k, text, i):
+							if match_tag(k, text, i, keyword=True):
 								tokens.append(Token(MD.CODEBLOCK_KEYWORD, i, i + len(k) + 1, k))
 								i += len(k)
 								key = True
