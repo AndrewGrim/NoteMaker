@@ -106,6 +106,7 @@ def lex(text: str) -> List[LexerToken]:
 										index += 1
 									tokens.append(Token(MD.CODEBLOCK_CLASS, i, i + index + 1, text[i:i + index]))
 									i += index - 1
+
 								elif k == "def":
 									i += 1
 									tokens.append(Token(MD.SPACE, i, i + 1, text[i]))
@@ -131,6 +132,7 @@ def lex(text: str) -> List[LexerToken]:
 
 						if not key:
 							tokens.append(Token(MD.CODEBLOCK, i, i + 1, char))
+
 					elif char in ["\"", "'"]:
 						index = 1
 						while text[i + index] not in ["\"", "'"]:
@@ -267,12 +269,8 @@ def lex(text: str) -> List[LexerToken]:
 				
 			if listItem:
 				tokens.append(Token(MD.LIST_ITEM_TEXT, i, i + 1, text[i]))
-			elif char == " ":
-				tokens.append(Token(MD.SPACE, i, i + 1))
-			elif char == "\t":
-				tokens.append(Token(MD.TAB, i, i + 1))
-			elif char == "\n":
-				tokens.append(Token(MD.NEWLINE, i, i + 1))
+			elif char in [" ", "\t", "\n"]:
+				pass
 			elif char == ";":
 				try:
 					tokens.append(Token(listIndex[-1], i, i + 1))
