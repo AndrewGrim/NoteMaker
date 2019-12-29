@@ -2,6 +2,7 @@ import os
 import sys
 from enum import IntEnum
 import typing
+import keyword
 from typing import List
 from typing import Union
 from typing import Tuple
@@ -33,6 +34,7 @@ def lex(text: str) -> List[LexerToken]:
 		text = open(text, "r").read()
 
 	tokens = []
+	keywords = (" ".join(keyword.kwlist) + " self None str int bool float").split()
 
 	i = 0
 	heading = False
@@ -70,7 +72,22 @@ def lex(text: str) -> List[LexerToken]:
 					code = False
 					tokens.append(Token(MD.CODE_END, i, i + 1))
 			else:
-				tokens.append(Token(MD.CODE, i, i + 1, char))
+				if codeBlock:
+					key = False
+					if text[i] in [" ", "\t", "\n", "`"]:
+						for k in keywords:
+							if check_for_tag(k, text, i):
+								tokens.append(Token(MD.CODEBLOCK_KEYWORD, i, i + len(k) + 1, k))
+								i += len(k)
+								key = True
+						if not key:
+							tokens.append(Token(MD.CODEBLOCK, i, i + 1, char))
+					elif char in [";", ":", "(", ")", "{", "}", "[", "]", ".", ",", "+", "-", "*", "/", "<", ">", "\\", "\"", "'", "=", "!"]:
+						tokens.append(Token(MD.CODEBLOCK_SYMBOL, i, i + 1, char))
+					else:
+						tokens.append(Token(MD.CODEBLOCK, i, i + 1, char))
+				else:
+					tokens.append(Token(MD.CODE, i, i + 1, char))
 		elif heading:
 			if char == "\n":
 				tokens.append(Token(MD.HEADING_END, i, i + 1))

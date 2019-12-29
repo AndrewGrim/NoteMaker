@@ -100,6 +100,12 @@ def parse(tokens: List[LexerToken], html: str, css: str) -> None:
 			htmlTags.append("</pre></code>")
 		elif t.id == MD.CODE:
 			htmlTags.append(t.content)
+		elif t.id == MD.CODEBLOCK:
+			htmlTags.append(t.content)
+		elif t.id == MD.CODEBLOCK_KEYWORD:
+			htmlTags.append(f'<div class="keyword">{t.content}</div>')
+		elif t.id == MD.CODEBLOCK_SYMBOL:
+			htmlTags.append(f'<div class="symbol">{t.content}</div>')
 		elif t.id == MD.UNDERLINE_BEGIN:
 			htmlTags.append("<u>")
 		elif t.id == MD.UNDERLINE_END:
@@ -159,8 +165,6 @@ def parse(tokens: List[LexerToken], html: str, css: str) -> None:
 			htmlTags.append(t.content)
 		elif t.id == MD.HTML_ATTRIBUTE_TEXT:
 			htmlTags.append(t.content)
-		elif t.id == MD.KEYWORD:
-			htmlTags.append(f'<div class="keyword">{t.content}</div>')
 		elif t.id == MD.TEXT:
 			htmlTags.append(t.content)
 		i += 1

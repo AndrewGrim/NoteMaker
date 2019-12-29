@@ -184,6 +184,12 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.HTML_ATTRIBUTE)
 				elif t.id == MD.FORMAT:
 					self.edit.SetStyling(t.end - t.begin, STYLE.FORMAT)
+				elif t.id == MD.CODEBLOCK_KEYWORD:
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODE_KEYWORD)
+				elif t.id == MD.CODEBLOCK_SYMBOL:
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODE_SYMBOL)
+				elif t.id == MD.CODEBLOCK:
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODE_TEXT)
 				else:
 					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
 			elif t.id == MD.NEWLINE:
@@ -192,12 +198,12 @@ class Application(wx.Frame):
 		r = rustKey.find_keywords(self.currentAMD)
 		print(r)
 
-		for i, t in enumerate(tokens):
-			if t.begin == 78 - 1:
-				print(t)
-				print(i)
+		# for i, t in enumerate(tokens):
+		# 	if t.begin == 78 - 1:
+		# 		print(t)
+		# 		print(i)
 
-				tokens.insert(i + 1, Token(MD.KEYWORD, 78, 80, "if"))
+		# 		tokens.insert(i + 1, Token(MD.CODEBLOCK_KEYWORD, 78, 80, "if"))
 
 
 		#print(keywords)
@@ -330,6 +336,10 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(14, "fore:#cb8296,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(15, "fore:#d9a62e,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(16, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+
+		self.edit.StyleSetSpec(17, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(18, "fore:#81ac71,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(19, "fore:#d5c4a1,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		# maybe have additional styles for the inside which is bold/underlined
 		# and maybe lex these same way that i do code?
 		self.edit.StyleSetSpec(8, "fore:#d9a62e,bold,size:%(size)d" % faces)
