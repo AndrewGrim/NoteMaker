@@ -14,6 +14,20 @@ from Debug import *
 
 LexerToken = NewType('Token', None)
 
+def check_for_tag(tag, text, i):
+	assert len(tag) > 0, "Tag length must be greater than zero!"
+
+	tag_match = []
+
+	matched = True
+	for num in range(len(tag)):
+		if text[i + num + 1] != tag[num]:
+			matched = False
+			return matched
+
+	return matched
+
+
 def lex(text: str) -> List[LexerToken]:
 	if os.path.exists(text):
 		text = open(text, "r").read()

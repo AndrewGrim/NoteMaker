@@ -992,3 +992,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 .markdown-body .pl-12 {
 	padding-left: 128px!important;
 }
+
+.keyword {
+	color: red;
+	display: inline;
+}

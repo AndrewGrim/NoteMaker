@@ -82,3 +82,5 @@ class MD(IntEnum):
 	CODE_BLOCK_BEGIN = 61
 	CODE_BLOCK_END = 62
 	FORMAT = 63
+
+	KEYWORD = 64

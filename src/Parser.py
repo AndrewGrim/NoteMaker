@@ -159,6 +159,8 @@ def parse(tokens: List[LexerToken], html: str, css: str) -> None:
 			htmlTags.append(t.content)
 		elif t.id == MD.HTML_ATTRIBUTE_TEXT:
 			htmlTags.append(t.content)
+		elif t.id == MD.KEYWORD:
+			htmlTags.append(f'<div class="keyword">{t.content}</div>')
 		elif t.id == MD.TEXT:
 			htmlTags.append(t.content)
 		i += 1

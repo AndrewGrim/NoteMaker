@@ -16,6 +16,8 @@ from Token import *
 from Debug import *
 from Parser import *
 
+import keywords as rustKey
+
 class Application(wx.Frame):
 
 	def __init__(self, *args, **kw):
@@ -73,8 +75,6 @@ class Application(wx.Frame):
 		if self.currentAMD != None:
 			try:
 				self.wv.LoadURL(self.html)
-				print(self.html)
-				print(os.getcwd())
 			except:
 				fail(f"Unable to load the html file: {self.html}")
 
@@ -188,6 +188,34 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
 			elif t.id == MD.NEWLINE:
 				error = False
+
+		r = rustKey.find_keywords(self.currentAMD)
+		print(r)
+
+		for i, t in enumerate(tokens):
+			if t.begin == 78 - 1:
+				print(t)
+				print(i)
+
+				tokens.insert(i + 1, Token(MD.KEYWORD, 78, 80, "if"))
+
+
+		#print(keywords)
+		# DOESNT WORK THAT WELL BUT WE WANT TO MAKE IT WORK, incorporate it into lexing process?
+		# codeBegin = -1
+		# codeEnd = -1
+		# for i, t in enumerate(tokens):
+		# 	if t.id == MD.CODE_BLOCK_BEGIN:
+		# 		codeBegin = i
+		# 	elif t.id == MD.CODE_BLOCK_END:
+		# 		codeEnd = i
+		# print("code: ", codeBegin)
+		# print("len: ", self.edit.GetLength())
+		# for key in keywords:
+		# 	begin = self.edit.FindText(codeBegin, codeEnd, key)
+		# 	if begin != -1:
+		# 		self.edit.StartStyling(begin, 0xff)
+		# 		self.edit.SetStyling(len(key), 6)
 
 		end = time.time()
 		info(f"Lex and highlight time: {round(end - start, 2)}")
