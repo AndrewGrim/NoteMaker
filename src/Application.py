@@ -16,7 +16,7 @@ from Token import *
 from Debug import *
 from Parser import *
 
-import keywords as rustKey
+import lexer
 
 class Application(wx.Frame):
 
@@ -207,7 +207,7 @@ class Application(wx.Frame):
 			elif t.id == MD.NEWLINE:
 				error = False
 
-		# r = rustKey.find_keywords(self.currentAMD)
+		# r = lexer.find_keywords(self.currentAMD)
 
 		# print(r[0].id)
 		# print(r[0].begin)

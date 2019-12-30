@@ -5,7 +5,7 @@ authors = ["AndrewGrim <39337035+AndrewGrim@users.noreply.github.com>"]
 edition = "2018"
 
 [lib]
-name = "keywords"
+name = "lexer"
 crate-type = ["cdylib"]
 
 [dependencies.pyo3]

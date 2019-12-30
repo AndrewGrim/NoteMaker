@@ -175,7 +175,7 @@ fn find_keywords(_py: Python, path: &str) -> PyResult<Vec<Token>> {
 }
 
 #[pymodule]
-fn keywords(py: Python, m: &PyModule) -> PyResult<()> {
+fn lexer(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(find_keywords))?;
 
     return Ok(());
