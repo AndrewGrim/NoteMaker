@@ -5,4 +5,4 @@ parser:
 exe:
 	pyinstaller -w -F -i images/amd.ico src/Application.py && cp dist/Application.exe ../NoteMaker && mv Application.exe NoteMaker.exe
 lexer:
-	cargo build --release && cp target/release/keywords.dll src/keywords.pyd
+	cargo fmt && cargo build --release && cp target/release/keywords.dll src/keywords.pyd
