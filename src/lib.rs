@@ -20,7 +20,7 @@ enum TokenType {
 #[pyclass]
 #[derive(Debug)]
 struct Token {
-    token_type: usize,
+    id: usize,
     begin: usize,
     end: usize,
     content: String,
@@ -29,13 +29,13 @@ struct Token {
 #[pymethods]
 impl Token {
     #[getter]
-    fn get_token_type(&self) -> PyResult<u32> {
-        Ok(self.token_type as u32)
+    fn get_id(&self) -> PyResult<u32> {
+        Ok(self.id as u32)
     }
 
     #[setter]
-    fn set_token_type(&mut self, token_type: usize) -> PyResult<()> {
-        self.token_type = token_type;
+    fn set_id(&mut self, id: usize) -> PyResult<()> {
+        self.id = id;
         Ok(())
     }
 
@@ -77,34 +77,34 @@ impl Token {
 impl PyObjectProtocol for Token {
     fn __str__(&self) -> PyResult<String> {
         Ok(format!(
-            "Token {{\n\ttoken_type: {}\n\tbegin: {}\n\tend: {}\n\tcontent: {}\n}}",
-            self.token_type, self.begin, self.end, self.content
+            "Token {{\n\tid: {}\n\tbegin: {}\n\tend: {}\n\tcontent: {}\n}}",
+            self.id, self.begin, self.end, self.content
         )
         .to_string())
     }
 
     fn __repr__(&self) -> PyResult<String> {
         Ok(format!(
-            "Token {{\n\ttoken_type: {}\n\tbegin: {}\n\tend: {}\n\tcontent: {}\n}}",
-            self.token_type, self.begin, self.end, self.content
+            "Token {{\n\tid: {}\n\tbegin: {}\n\tend: {}\n\tcontent: {}\n}}",
+            self.id, self.begin, self.end, self.content
         )
         .to_string())
     }
 }
 
 impl Token {
-    fn new(token_type: usize, begin: usize, content: String) -> Token {
+    fn new(id: usize, begin: usize, content: String) -> Token {
         return Token {
-            token_type,
+            id,
             begin,
             end: begin + 1,
             content,
         };
     }
 
-    fn new_tag(token_type: usize, begin: usize, content: String, tag: &str) -> Token {
+    fn new_tag(id: usize, begin: usize, content: String, tag: &str) -> Token {
         return Token {
-            token_type,
+            id,
             begin,
             end: begin + tag.len(),
             content,

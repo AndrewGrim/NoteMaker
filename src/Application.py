@@ -209,14 +209,14 @@ class Application(wx.Frame):
 
 		r = rustKey.find_keywords(self.currentAMD)
 
-		print(r[0].token_type)
+		print(r[0].id)
 		print(r[0].begin)
 		print(r[0].end)
 		print(r[0].content)
 
-		r[0].token_type = 2
-		print(r[0].token_type)
-		print(type(r[0].token_type))
+		r[0].id = 2
+		print(r[0].id)
+		print(type(r[0].id))
 
 		r[0].begin = 1099
 		print(r[0].begin)
@@ -232,7 +232,7 @@ class Application(wx.Frame):
 
 		print(r[0])
 
-		print(r[0].token_type == MD.HEADING_TEXT)
+		print(r[0].id == MD.HEADING_TEXT)
 
 		# for i, t in enumerate(tokens):
 		# 	if t.begin == 78 - 1:
