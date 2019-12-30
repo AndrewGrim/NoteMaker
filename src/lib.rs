@@ -79,41 +79,39 @@ impl PyObjectProtocol for Token {
         Ok(format!(
             "Token {{\n\tid: {}\n\tbegin: {}\n\tend: {}\n\tcontent: {}\n}}",
             self.id, self.begin, self.end, self.content
-        )
-        .to_string())
+        ))
     }
 
     fn __repr__(&self) -> PyResult<String> {
         Ok(format!(
             "Token {{\n\tid: {}\n\tbegin: {}\n\tend: {}\n\tcontent: {}\n}}",
             self.id, self.begin, self.end, self.content
-        )
-        .to_string())
+        ))
     }
 }
 
 impl Token {
     fn new(id: usize, begin: usize, content: String) -> Token {
-        return Token {
+        Token {
             id,
             begin,
             end: begin + 1,
             content,
-        };
+        }
     }
 
     fn new_tag(id: usize, begin: usize, content: String, tag: &str) -> Token {
-        return Token {
+        Token {
             id,
             begin,
             end: begin + tag.len(),
             content,
-        };
+        }
     }
 }
 
-fn check_for_tag(tag: &str, text: &str, i: &usize) -> bool {
-    assert!(tag.len() > 0, "Tag length must be greater than zero!");
+fn check_for_tag(tag: &str, text: &str, i: usize) -> bool {
+    assert!(tag.is_empty(), "Tag length must be greater than zero!");
 
     let mut matched: bool = true;
 
@@ -127,7 +125,7 @@ fn check_for_tag(tag: &str, text: &str, i: &usize) -> bool {
         }
     }
 
-    return matched;
+    matched
 }
 
 #[pyfunction]
@@ -142,7 +140,7 @@ fn lex(_py: Python, path: &str) -> PyResult<Vec<Token>> {
     let mut i: usize = 0;
     let mut line: usize = 1;
     while i < text.len() {
-        let c = &text[i..i + 1];
+        let c = &text[i..=i];
 
         match c {
             "\n" => {
@@ -160,12 +158,12 @@ fn lex(_py: Python, path: &str) -> PyResult<Vec<Token>> {
         i += 1;
     }
 
-    return Ok(tokens);
+    Ok(tokens)
 }
 
 #[pymodule]
 fn lexer(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(lex))?;
 
-    return Ok(());
+    Ok(())
 }

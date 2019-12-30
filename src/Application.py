@@ -207,8 +207,8 @@ class Application(wx.Frame):
 			elif t.id == MD.NEWLINE:
 				error = False
 
-		r = lexer.lex(self.currentAMD)
-		print(r)
+		# r = lexer.lex(self.currentAMD)
+		# print(r)
 
 		# print(r[0].id)
 		# print(r[0].begin)
