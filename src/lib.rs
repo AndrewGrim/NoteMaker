@@ -131,11 +131,10 @@ fn check_for_tag(tag: &str, text: &str, i: &usize) -> bool {
 }
 
 #[pyfunction]
-fn find_keywords(_py: Python, path: &str) -> PyResult<Vec<Token>> {
+fn lex(_py: Python, path: &str) -> PyResult<Vec<Token>> {
     let text = fs::read_to_string(path).expect("Something went wrong reading the file");
 
     let mut tokens: Vec<Token> = Vec::new();
-    //let mut tokens: Vec<(usize, usize)> = Vec::new();
     let keywords = [
         "class", "def", "if", "else", "elif", "return", "yield", "self",
     ];
@@ -143,40 +142,30 @@ fn find_keywords(_py: Python, path: &str) -> PyResult<Vec<Token>> {
     let mut i: usize = 0;
     let mut line: usize = 1;
     while i < text.len() {
-        let c = text.chars().nth(i).expect("error");
+        let c = &text[i..i + 1];
 
-        for key in keywords.iter() {
-            if c == key.chars().nth(0).expect("error") {
-                if check_for_tag(key, &text, &i) {
-                    ok(format!(
-                        "Line: {} Index: {}->{} Tag: '{}'",
-                        line,
-                        i,
-                        i + key.len(),
-                        key
-                    )
-                    .as_str());
-                    tokens.push(Token::new_tag(1, i, key.to_string(), key));
-                    //tokens.push((i, i + key.len()));
-                }
+        match c {
+            "\n" => {
+                line += 1;
             }
-        }
-
-        if c == '\n' {
-            line += 1;
+            "#" => {
+                tokens.push(Token::new(TokenType::Heading as usize, i, String::from(c)));
+            }
+            "*" if &text[i + 1..i + 2] == "*" => {
+                tokens.push(Token::new(7, i, String::from("**")));
+            }
+            &_ => (),
         }
 
         i += 1;
     }
 
     return Ok(tokens);
-    //debug::test();
-    //println!("{:#?}", tokens);
 }
 
 #[pymodule]
 fn lexer(py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_wrapped(wrap_pyfunction!(find_keywords))?;
+    m.add_wrapped(wrap_pyfunction!(lex))?;
 
     return Ok(());
 }
