@@ -1,4 +1,4 @@
-debug:
+debug: lexer
 	python src/Application.py "Notes/test.amd"
 parser:
 	python src/ParseMarkdown.py Notes/test.md
