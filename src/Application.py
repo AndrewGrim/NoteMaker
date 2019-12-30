@@ -207,8 +207,30 @@ class Application(wx.Frame):
 			elif t.id == MD.NEWLINE:
 				error = False
 
-		# r = rustKey.find_keywords(self.currentAMD)
-		# print(r)
+		r = rustKey.find_keywords(self.currentAMD)
+
+		print(r[0].token_type)
+		print(r[0].begin)
+		print(r[0].end)
+		print(r[0].content)
+
+		r[0].token_type = 2
+		print(r[0].token_type)
+		print(type(r[0].token_type))
+
+		r[0].begin = 1099
+		print(r[0].begin)
+		print(type(r[0].begin))
+
+		r[0].end = 1105
+		print(r[0].end)
+		print(type(r[0].end))
+
+		r[0].content = "maggot"
+		print(r[0].content)
+		print(type(r[0].content))
+
+		print(r[0])
 
 		# for i, t in enumerate(tokens):
 		# 	if t.begin == 78 - 1:
