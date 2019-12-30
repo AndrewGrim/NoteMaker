@@ -207,32 +207,32 @@ class Application(wx.Frame):
 			elif t.id == MD.NEWLINE:
 				error = False
 
-		r = rustKey.find_keywords(self.currentAMD)
+		# r = rustKey.find_keywords(self.currentAMD)
 
-		print(r[0].id)
-		print(r[0].begin)
-		print(r[0].end)
-		print(r[0].content)
+		# print(r[0].id)
+		# print(r[0].begin)
+		# print(r[0].end)
+		# print(r[0].content)
 
-		r[0].id = 2
-		print(r[0].id)
-		print(type(r[0].id))
+		# r[0].id = 2
+		# print(r[0].id)
+		# print(type(r[0].id))
 
-		r[0].begin = 1099
-		print(r[0].begin)
-		print(type(r[0].begin))
+		# r[0].begin = 1099
+		# print(r[0].begin)
+		# print(type(r[0].begin))
 
-		r[0].end = 1105
-		print(r[0].end)
-		print(type(r[0].end))
+		# r[0].end = 1105
+		# print(r[0].end)
+		# print(type(r[0].end))
 
-		r[0].content = "maggot"
-		print(r[0].content)
-		print(type(r[0].content))
+		# r[0].content = "maggot"
+		# print(r[0].content)
+		# print(type(r[0].content))
 
-		print(r[0])
+		# print(r[0])
 
-		print(r[0].id == MD.HEADING_TEXT)
+		# print(r[0].id == MD.HEADING_TEXT)
 
 		# for i, t in enumerate(tokens):
 		# 	if t.begin == 78 - 1:
@@ -270,6 +270,7 @@ class Application(wx.Frame):
 
 	def makeMenuBar(self):
 		fileMenu = wx.Menu()
+		newItem = fileMenu.Append(-1, "&New\tCtrl-N")
 		saveItem = fileMenu.Append(-1, "&Save\tCtrl-S")
 		openItem = fileMenu.Append(-1, "&Open\tCtrl-O")
 		reloadItem = fileMenu.Append(-1, "&Reload\tCtrl-R")
@@ -280,10 +281,18 @@ class Application(wx.Frame):
 
 		self.SetMenuBar(menuBar)
 
+		self.Bind(wx.EVT_MENU, self.onNew, newItem)
 		self.Bind(wx.EVT_MENU, self.onSave, saveItem)
 		self.Bind(wx.EVT_MENU, self.onOpen, openItem)
 		self.Bind(wx.EVT_MENU, self.onReload, reloadItem)
 		self.Bind(wx.EVT_MENU, self.onShowHidden, hiddenItem)
+
+
+	def onNew(self, event):
+		self.currentAMD = None
+		self.edit.ClearAll()
+		open(self.html, "w").write("")
+		self.wv.LoadURL(self.html)
 
 
 	def onSave(self, event):
