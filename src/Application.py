@@ -127,7 +127,8 @@ class Application(wx.Frame):
 	def onKeyUp(self, event):
 		start = time.time()
 		text = self.edit.GetValue()
-		tokens = lex(text)
+		tokens = lexer.lex(self.currentAMD)
+		#tokens = lex(text)
 		error = False
 		keywords = (" ".join(keyword.kwlist) + " self").split()
 		for i, t in enumerate(tokens):
@@ -207,59 +208,6 @@ class Application(wx.Frame):
 			elif t.id == MD.NEWLINE:
 				error = False
 
-		# r = lexer.lex(self.currentAMD)
-		# print(r)
-
-		# print(r[0].id)
-		# print(r[0].begin)
-		# print(r[0].end)
-		# print(r[0].content)
-
-		# r[0].id = 2
-		# print(r[0].id)
-		# print(type(r[0].id))
-
-		# r[0].begin = 1099
-		# print(r[0].begin)
-		# print(type(r[0].begin))
-
-		# r[0].end = 1105
-		# print(r[0].end)
-		# print(type(r[0].end))
-
-		# r[0].content = "maggot"
-		# print(r[0].content)
-		# print(type(r[0].content))
-
-		# print(r[0])
-
-		# print(r[0].id == MD.HEADING_TEXT)
-
-		# for i, t in enumerate(tokens):
-		# 	if t.begin == 78 - 1:
-		# 		print(t)
-		# 		print(i)
-
-		# 		tokens.insert(i + 1, Token(MD.CODEBLOCK_KEYWORD, 78, 80, "if"))
-
-
-		#print(keywords)
-		# DOESNT WORK THAT WELL BUT WE WANT TO MAKE IT WORK, incorporate it into lexing process?
-		# codeBegin = -1
-		# codeEnd = -1
-		# for i, t in enumerate(tokens):
-		# 	if t.id == MD.CODEBLOCK_BEGIN:
-		# 		codeBegin = i
-		# 	elif t.id == MD.CODEBLOCK_END:
-		# 		codeEnd = i
-		# print("code: ", codeBegin)
-		# print("len: ", self.edit.GetLength())
-		# for key in keywords:
-		# 	begin = self.edit.FindText(codeBegin, codeEnd, key)
-		# 	if begin != -1:
-		# 		self.edit.StartStyling(begin, 0xff)
-		# 		self.edit.SetStyling(len(key), 6)
-
 		end = time.time()
 		info(f"Lex and highlight time: {round(end - start, 2)}")
 		start = time.time()
@@ -276,6 +224,7 @@ class Application(wx.Frame):
 		openItem = fileMenu.Append(-1, "&Open\tCtrl-O")
 		reloadItem = fileMenu.Append(-1, "&Reload\tCtrl-R")
 		hiddenItem = fileMenu.Append(-1, "&Show Hidden Symbols\tCtrl-D")
+		quitItem = fileMenu.Append(-1, "&Quit\tCtrl-Q")
 		
 		menuBar = wx.MenuBar()
 		menuBar.Append(fileMenu, "&File")
@@ -287,6 +236,11 @@ class Application(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.onOpen, openItem)
 		self.Bind(wx.EVT_MENU, self.onReload, reloadItem)
 		self.Bind(wx.EVT_MENU, self.onShowHidden, hiddenItem)
+		self.Bind(wx.EVT_MENU, self.onQuit, quitItem)
+
+	
+	def onQuit(self, event):
+		sys.exit()
 
 
 	def onNew(self, event):

@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 #![allow(unused_imports)]
+#![allow(unused_assignments)]
 
 use std::fs;
 
@@ -15,6 +16,8 @@ use debug::ok;
 enum TokenType {
     Heading,
     CodeKeyword,
+    Bold,
+    Italic,
 }
 
 #[pyclass]
@@ -91,7 +94,16 @@ impl PyObjectProtocol for Token {
 }
 
 impl Token {
-    fn new(id: usize, begin: usize, content: String) -> Token {
+    fn new(id: usize, begin: usize, end: usize, content: String) -> Token {
+        Token {
+            id,
+            begin,
+            end,
+            content,
+        }
+    }
+
+    fn new_single(id: usize, begin: usize, content: String) -> Token {
         Token {
             id,
             begin,
@@ -128,14 +140,38 @@ fn check_for_tag(tag: &str, text: &str, i: usize) -> bool {
     matched
 }
 
+fn match_heading(text: &str, mut i: usize, c: &str, mut line: usize) -> Token {
+    let mut next_c = &text[i..=i];
+    let mut heading: String = String::new();
+
+    let mut h_count: usize = 0;
+    loop {
+        match next_c {
+            "#" => {
+                h_count += 1;
+                heading += next_c;
+                println!("runs");
+            }
+            "\n" => {
+                line += 1;
+                break;
+            }
+            " " => break,
+            _ => break,
+        }
+        next_c = &text[i..=i];
+        i += 1;
+    }
+    println!("heading: {}, Line: {}, Char: {}", heading, line, i);
+
+    Token::new(TokenType::Heading as usize, i, i + h_count, heading)
+}
+
 #[pyfunction]
 fn lex(_py: Python, path: &str) -> PyResult<Vec<Token>> {
     let text = fs::read_to_string(path).expect("Something went wrong reading the file");
 
     let mut tokens: Vec<Token> = Vec::new();
-    let keywords = [
-        "class", "def", "if", "else", "elif", "return", "yield", "self",
-    ];
 
     let mut i: usize = 0;
     let mut line: usize = 1;
@@ -147,16 +183,48 @@ fn lex(_py: Python, path: &str) -> PyResult<Vec<Token>> {
                 line += 1;
             }
             "#" => {
-                tokens.push(Token::new(TokenType::Heading as usize, i, String::from(c)));
+                let mut heading: String = String::new();
+
+                let mut h_count: usize = 0;
+                loop {
+                    let next_c = &text[i..=i];
+
+                    match next_c {
+                        "#" => {
+                            h_count += 1;
+                            heading += next_c;
+                        }
+                        "\n" => {
+                            line += 1;
+                            break;
+                        }
+                        " " => break,
+                        _ => break,
+                    }
+                    i += 1;
+                }
+
+                tokens.push(Token::new(
+                    TokenType::Heading as usize,
+                    i - (h_count - 1) - 1,
+                    i,
+                    heading,
+                ));
             }
-            "*" if &text[i + 1..i + 2] == "*" => {
-                tokens.push(Token::new(7, i, String::from("**")));
-            }
-            &_ => (),
+            // "*" if &text[i + 1..i + 2] == "*" => {
+            //     tokens.push(Token::new(TokenType::Bold as usize, i, String::from("**")));
+            //     i += 1
+            // }
+            // "*" if &text[i + 1..i + 2] != "*" => {
+            //     tokens.push(Token::new(TokenType::Italic as usize, i, String::from("*")));
+            // }
+            _ => (),
         }
 
         i += 1;
     }
+
+    println!("{:?}", tokens);
 
     Ok(tokens)
 }
