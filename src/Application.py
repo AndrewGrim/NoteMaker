@@ -127,7 +127,7 @@ class Application(wx.Frame):
 	def onKeyUp(self, event):
 		start = time.time()
 		text = self.edit.GetValue()
-		tokens = lexer.lex(self.currentAMD)
+		tokens = lexer.lex(text)
 		#tokens = lex(text)
 		error = False
 		keywords = (" ".join(keyword.kwlist) + " self").split()
