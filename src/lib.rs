@@ -12,13 +12,8 @@ use pyo3::PyObjectProtocol;
 mod debug;
 use debug::ok;
 
-#[derive(Debug)]
-enum TokenType {
-    Heading,
-    CodeKeyword,
-    Bold,
-    Italic,
-}
+mod token_type;
+use token_type::TokenType as tt;
 
 #[pyclass]
 #[derive(Debug)]
@@ -80,14 +75,14 @@ impl Token {
 impl PyObjectProtocol for Token {
     fn __str__(&self) -> PyResult<String> {
         Ok(format!(
-            "Token {{\n\tid: {}\n\tbegin: {}\n\tend: {}\n\tcontent: {}\n}}",
+            "Token {{\n\tid: {}\n\tbegin: {}\n\tend: {}\n\tcontent: '{}'\n}}",
             self.id, self.begin, self.end, self.content
         ))
     }
 
     fn __repr__(&self) -> PyResult<String> {
         Ok(format!(
-            "Token {{\n\tid: {}\n\tbegin: {}\n\tend: {}\n\tcontent: {}\n}}",
+            "Token {{\n\tid: {}\n\tbegin: {}\n\tend: {}\n\tcontent: '{}'\n}}",
             self.id, self.begin, self.end, self.content
         ))
     }
@@ -120,6 +115,15 @@ impl Token {
             content,
         }
     }
+
+    fn new_space(begin: usize) -> Token {
+        Token {
+            id: tt::Space as usize,
+            begin,
+            end: begin + 1,
+            content: String::from(" "),
+        }
+    }
 }
 
 fn check_for_tag(tag: &str, text: &str, i: usize) -> bool {
@@ -140,37 +144,48 @@ fn check_for_tag(tag: &str, text: &str, i: usize) -> bool {
     matched
 }
 
-fn match_heading(text: &str, mut i: usize, c: &str, mut line: usize) -> Token {
-    let mut next_c = &text[i..=i];
+fn match_heading(text: &str, mut i: usize, line: usize) -> (usize, usize, Token) {
     let mut heading: String = String::new();
-
     let mut h_count: usize = 0;
+
     loop {
+        let next_c = &text[i..=i];
+
         match next_c {
             "#" => {
                 h_count += 1;
                 heading += next_c;
-                println!("runs");
             }
-            "\n" => {
-                line += 1;
-                break;
-            }
-            " " => break,
             _ => break,
         }
-        next_c = &text[i..=i];
         i += 1;
     }
-    println!("heading: {}, Line: {}, Char: {}", heading, line, i);
 
-    Token::new(TokenType::Heading as usize, i, i + h_count, heading)
+    if h_count > 6 {
+        debug::warn(
+            format!(
+                "Line: {}, Index: {} -> Too many #! Heading only go up to 6!",
+                line, i
+            )
+            .as_str(),
+        );
+
+        return (
+            i,
+            line,
+            Token::new(tt::Error as usize, i - (h_count - 1) - 1, i, heading),
+        );
+    }
+
+    (
+        i,
+        line,
+        Token::new(tt::Heading as usize, i - (h_count - 1) - 1, i, heading),
+    )
 }
 
 #[pyfunction]
-fn lex(_py: Python, path: &str) -> PyResult<Vec<Token>> {
-    let text = fs::read_to_string(path).expect("Something went wrong reading the file");
-
+fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
     let mut tokens: Vec<Token> = Vec::new();
 
     let mut i: usize = 0;
@@ -183,33 +198,11 @@ fn lex(_py: Python, path: &str) -> PyResult<Vec<Token>> {
                 line += 1;
             }
             "#" => {
-                let mut heading: String = String::new();
-
-                let mut h_count: usize = 0;
-                loop {
-                    let next_c = &text[i..=i];
-
-                    match next_c {
-                        "#" => {
-                            h_count += 1;
-                            heading += next_c;
-                        }
-                        "\n" => {
-                            line += 1;
-                            break;
-                        }
-                        " " => break,
-                        _ => break,
-                    }
-                    i += 1;
-                }
-
-                tokens.push(Token::new(
-                    TokenType::Heading as usize,
-                    i - (h_count - 1) - 1,
-                    i,
-                    heading,
-                ));
+                let result = match_heading(&text, i, line);
+                i = result.0;
+                line = result.1;
+                tokens.push(result.2);
+                tokens.push(Token::new_space(i));
             }
             // "*" if &text[i + 1..i + 2] == "*" => {
             //     tokens.push(Token::new(TokenType::Bold as usize, i, String::from("**")));
@@ -223,8 +216,6 @@ fn lex(_py: Python, path: &str) -> PyResult<Vec<Token>> {
 
         i += 1;
     }
-
-    println!("{:?}", tokens);
 
     Ok(tokens)
 }
