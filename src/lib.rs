@@ -45,7 +45,7 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
     let mut i: usize = 0;
     let mut line: usize = 1;
     while i < text.len() {
-        let c = &text[i..=i];
+        let c = match text.get(i..=i) { Some(val) => val, None => break,};
 
         match c {
             "\n" => {
@@ -62,7 +62,7 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
             }
             "*" => {
                 i += 1;
-                let next_c = &text[i..=i];
+                let next_c = match text.get(i..=i) { Some(val) => val, None => break,};
                 match next_c {
                     "*" => {
                         let result = match_bold(&text, i, line, &mut tokens);
@@ -76,20 +76,31 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                     }
                 }
             }
+            ":" => {
+                i += 1;
+                let next_c = match text.get(i..=i) { Some(val) => val, None => break,};
+                if let ":" = next_c {
+                    let result = match_list(&text, i, line, &mut tokens);
+                    i = result.0;
+                    line = result.1;
+                } else {
+                    tokens.push(Token::new_single(TokenType::Text as usize, i, String::from(c)));
+                }
+            }
             "/" => {
                 i += 1;
-                let mut next_c = &text[i..=i];
+                let mut next_c = match text.get(i..=i) { Some(val) => val, None => break,};
                 if let "/" = next_c {
                     tokens.push(Token::new_single(TokenType::Comment as usize, i - 1, String::from(next_c)));
                     tokens.push(Token::new_single(TokenType::Comment as usize, i, String::from(next_c)));
                     while next_c != "\n" {
                         i += 1;
-                        next_c = &text[i..=i];
+                        next_c = match text.get(i..=i) { Some(val) => val, None => break,};
                         tokens.push(Token::new_single(TokenType::Comment as usize, i, String::from(next_c)));
                     }
                 }   
             }
-            _ => (),
+            _ => tokens.push(Token::new_single(TokenType::Text as usize, i, String::from(c))),
         }
 
         i += 1;

@@ -141,9 +141,9 @@ class Application(wx.Frame):
 				elif t.id == MD.COMMENT:
 					self.edit.SetStyling(t.end - t.begin, STYLE.COMMENT)
 				elif t.id == MD.HEADING:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id == MD.HEADING_TEXT:
 					self.edit.SetStyling(t.end - t.begin, STYLE.HEADING)
+				elif t.id == MD.HEADING_TEXT:
+					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
 				elif t.id in [MD.SPACE, MD.TAB, MD.NEWLINE]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.HIDDEN)
 				elif t.id in [MD.CODE, MD.CODE_BEGIN, MD.CODE_END, MD.CODEBLOCK_BEGIN, MD.CODEBLOCK_END]:
@@ -169,6 +169,8 @@ class Application(wx.Frame):
 				elif t.id == MD.HORIZONTAL_RULE:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id == MD.LIST_ITEM_BEGIN:
+					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
+				elif t.id in [MD.ULIST_BEGIN, MD.OLIST_BEGIN]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id in [MD.ULIST_END, MD.OLIST_END]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)

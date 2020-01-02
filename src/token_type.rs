@@ -1,4 +1,5 @@
 #[derive(Debug)]
+#[derive(Copy)]
 pub enum TokenType {
     Heading,
     HeadingText,
@@ -76,4 +77,10 @@ pub enum TokenType {
     FormatBlockText,
     FormatBlockEnd,
     Comment,
+}
+
+impl Clone for TokenType {
+    fn clone(&self) -> Self {
+        *self
+    }
 }

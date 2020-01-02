@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-
 pub fn info(text: &str) {
     let color = "\x1b[94m";
     let end = "\x1b[0m";
