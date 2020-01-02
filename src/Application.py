@@ -131,13 +131,15 @@ class Application(wx.Frame):
 		#tokens = lex(text)
 		error = False
 		keywords = (" ".join(keyword.kwlist) + " self").split()
-		open("tokens.log.txt", "w").writelines(str(tokens))
+		open("tokens.log", "w").writelines(str(tokens))
 		for i, t in enumerate(tokens):
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:
 				if t.id == MD.ERROR:
 					self.edit.SetStyling(t.end - t.begin, INDICATOR.ERROR | STYLE.TEXT)
 					error = True
+				elif t.id == MD.COMMENT:
+					self.edit.SetStyling(t.end - t.begin, STYLE.COMMENT)
 				elif t.id == MD.HEADING:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id == MD.HEADING_TEXT:
@@ -341,6 +343,7 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(STYLE.HTML, "fore:#cb8296,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(STYLE.HTML_ATTRIBUTE, "fore:#d9a62e,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(STYLE.FORMAT, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(STYLE.COMMENT, "fore:#928372,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 
 		self.edit.StyleSetSpec(STYLE.CODEBLOCK_KEYWORD, "fore:#569cd6,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(STYLE.CODEBLOCK_SYMBOL, "fore:#9cdcfe,back:#282828,face:%(mono)s,size:%(size)d" % faces)

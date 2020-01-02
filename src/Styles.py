@@ -28,5 +28,7 @@ class STYLE(IntEnum):
 	CODEBLOCK_FLOW = 25
 	CODEBLOCK_DIGIT = 26
 
+	COMMENT = 27
+
 class INDICATOR(IntEnum):
 	ERROR = 32

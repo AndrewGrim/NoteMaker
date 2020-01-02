@@ -15,7 +15,7 @@ mod token;
 use token::Token;
 
 mod token_type;
-use token_type::TokenType as tt;
+use token_type::TokenType;
 
 mod lexer;
 use lexer::*;
@@ -56,16 +56,38 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                 i = result.0;
                 line = result.1;
 
-                if tokens[tokens.len() - 1].id == tt::Heading as usize {
+                if tokens[tokens.len() - 1].id == TokenType::Heading as usize {
                     println!("runs");
                 }
             }
-            "*" if &text[i + 1..=i + 1] == "*" => {
-                tokens.push(Token::new_double(tt::Bold as usize, i, String::from("**")));
-                i += 1
+            "*" => {
+                i += 1;
+                let next_c = &text[i..=i];
+                match next_c {
+                    "*" => {
+                        let result = match_bold(&text, i, line, &mut tokens);
+                        i = result.0;
+                        line = result.1;
+                    }
+                    _ => {
+                        let result = match_italic(&text, i, line, &mut tokens);
+                        i = result.0;
+                        line = result.1;
+                    }
+                }
             }
-            "*" if &text[i + 1..=i + 1] != "*" => {
-                tokens.push(Token::new_single(tt::Italic as usize, i, String::from("*")));
+            "/" => {
+                i += 1;
+                let mut next_c = &text[i..=i];
+                if let "/" = next_c {
+                    tokens.push(Token::new_single(TokenType::Comment as usize, i - 1, String::from(next_c)));
+                    tokens.push(Token::new_single(TokenType::Comment as usize, i, String::from(next_c)));
+                    while next_c != "\n" {
+                        i += 1;
+                        next_c = &text[i..=i];
+                        tokens.push(Token::new_single(TokenType::Comment as usize, i, String::from(next_c)));
+                    }
+                }   
             }
             _ => (),
         }

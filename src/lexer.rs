@@ -49,3 +49,56 @@ pub fn match_heading(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec
 
     (i, line)
 }
+
+pub fn match_bold(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+    tokens.push(Token::new_double(TokenType::BoldBegin as usize, i - 1, String::from("**")));
+    i += 1;
+    let mut matched_text: String = String::new();
+
+    let start: usize = i;
+    loop {
+        let c = &text[i..=i];
+
+        match c {
+            "*" => {
+                i += 1;
+                let next_c = &text[i..=i];
+                match next_c {
+                    "*" => {
+                        tokens.push(Token::new(TokenType::Bold as usize, start, i - 1, matched_text));
+                        tokens.push(Token::new_double(TokenType::BoldEnd as usize, i - 1, String::from("**")));
+                        break;
+                    }
+                    _ => break,
+                }
+            }
+            _ => matched_text += c,
+        }
+        i += 1;
+    }
+
+    (i, line)
+}
+
+pub fn match_italic(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+    tokens.push(Token::new_single(TokenType::ItalicBegin as usize, i - 1, String::from("*")));
+    let mut matched_text: String = String::new();
+
+    let start: usize = i;
+    loop {
+        let c = &text[i..=i];
+
+        match c {
+            "*" => {
+                tokens.push(Token::new(TokenType::Italic as usize, start, i, matched_text));
+                tokens.push(Token::new_single(TokenType::ItalicEnd as usize, i, String::from("*")));
+                break;
+            }
+            _ => matched_text += c,
+        }
+
+        i += 1;
+    }
+
+    (i, line)
+}
