@@ -6,9 +6,7 @@ pub fn match_heading(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec
     let mut heading: String = String::new();
     let mut h_count: usize = 0;
 
-    loop {
-        let c = match text.get(i..=i) { Some(val) => val, None => break,};
-
+    while let Some(c) = text.get(i..=i) {
         match c {
             "#" => {
                 h_count += 1;
@@ -32,9 +30,7 @@ pub fn match_heading(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec
 
     let mut heading_text: String = String::new();
     let start: usize = i;
-    loop {
-        let c = match text.get(i..=i) { Some(val) => val, None => break,};
-
+    while let Some(c) = text.get(i..=i) {
         match c {
             "\n" => {
                 line += 1;
@@ -56,9 +52,7 @@ pub fn match_bold(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>
     let mut matched_text: String = String::new();
 
     let start: usize = i;
-    loop {
-        let c = match text.get(i..=i) { Some(val) => val, None => break,};
-
+    while let Some(c) = text.get(i..=i) {
         match c {
             "*" => {
                 i += 1;
@@ -85,9 +79,7 @@ pub fn match_italic(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Toke
     let mut matched_text: String = String::new();
 
     let start: usize = i;
-    loop {
-        let c = match text.get(i..=i) { Some(val) => val, None => break,};
-
+    while let Some(c) = text.get(i..=i) {
         match c {
             "*" => {
                 tokens.push(Token::new(TokenType::Italic as usize, start, i, matched_text));
@@ -116,13 +108,11 @@ pub fn match_list(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>
             tokens.push(Token::new(TokenType::UnorderedListBegin as usize, i - 2, i + 1, String::from("::*")));
             tokens.push(Token::empty(TokenType::ListItemBegin as usize));
             list_index.push(TokenType::UnorderedListEnd as usize);
-            // TODO should check and add a space here since its not really item list text
         }
         "1" => {
             tokens.push(Token::new(TokenType::OrderedListBegin as usize, i - 2, i + 1, String::from("::1")));
             tokens.push(Token::empty(TokenType::ListItemBegin as usize));
             list_index.push(TokenType::OrderedListEnd as usize);
-            // TODO should check and add a space here since its not really item list text
         }
         _ => {
             debug::warn(format!("Line: {}, Index: {} -> Incorrect list start! Expected '*' or a digit, found '{}'", line, i, c).as_str());
@@ -154,13 +144,11 @@ pub fn match_list(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>
                     tokens.push(Token::new(TokenType::UnorderedListBegin as usize, i - 2, i + 1, String::from("::*")));
                     tokens.push(Token::empty(TokenType::ListItemBegin as usize));
                     list_index.push(TokenType::UnorderedListEnd as usize);
-                    // TODO should check and add a space here since its not really item list text
                 }
                 "1" => {
                     tokens.push(Token::new(TokenType::OrderedListBegin as usize, i - 2, i + 1, String::from("::1")));
                     tokens.push(Token::empty(TokenType::ListItemBegin as usize));
                     list_index.push(TokenType::OrderedListEnd as usize);
-                    // TODO should check and add a space here since its not really item list text
                 }
                 _ => {
                     debug::warn(format!("Line: {}, Index: {} -> Incorrect list start! Expected '*' or a digit, found '{}'", line, i, c).as_str());
