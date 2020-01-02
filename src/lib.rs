@@ -58,10 +58,6 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                 let result = match_heading(&text, i, line, &mut tokens);
                 i = result.0;
                 line = result.1;
-
-                if tokens[tokens.len() - 1].id == TokenType::Heading as usize {
-                    println!("runs");
-                }
             }
             "*" => {
                 i += 1;
