@@ -35,8 +35,9 @@ def match_tag(tag, text, i, keyword=False, data_type=False):
 
 
 def lex(text: str) -> List[LexerToken]:
-	if os.path.exists(text):
-		text = open(text, "r").read()
+	if len(text) < 264:
+		if os.path.exists(text):
+			text = open(text, "r").read()
 
 	tokens = []
 	keywords = [
