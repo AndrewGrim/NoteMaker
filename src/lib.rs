@@ -49,8 +49,11 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
 
         match c {
             "\n" => {
+                tokens.push(Token::new_single(TokenType::Newline as usize, i, String::from(c)));
                 line += 1;
             }
+            "\t" => tokens.push(Token::new_single(TokenType::Tab as usize, i, String::from(c))),
+            " " => tokens.push(Token::new_single(TokenType::Tab as usize, i, String::from(c))),
             "#" => {
                 let result = match_heading(&text, i, line, &mut tokens);
                 i = result.0;
@@ -74,6 +77,24 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                         i = result.0;
                         line = result.1;
                     }
+                }
+            }
+            "~" => {
+                i += 1;
+                let next_c = match text.get(i..=i) { Some(val) => val, None => break,};
+                if let "~" = next_c {
+                    let result = match_strike(&text, i, line, &mut tokens);
+                    i = result.0;
+                    line = result.1;
+                }
+            }
+            "_" => {
+                i += 1;
+                let next_c = match text.get(i..=i) { Some(val) => val, None => break,};
+                if let "_" = next_c {
+                    let result = match_underline(&text, i, line, &mut tokens);
+                    i = result.0;
+                    line = result.1;
                 }
             }
             ":" => {

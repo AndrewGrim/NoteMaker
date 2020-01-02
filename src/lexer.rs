@@ -95,6 +95,62 @@ pub fn match_italic(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Toke
     (i, line)
 }
 
+pub fn match_strike(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+    tokens.push(Token::new_double(TokenType::StrikeBegin as usize, i - 1, String::from("~~")));
+    i += 1;
+    let mut matched_text: String = String::new();
+
+    let start: usize = i;
+    while let Some(c) = text.get(i..=i) {
+        match c {
+            "~" => {
+                i += 1;
+                let next_c = match text.get(i..=i) { Some(val) => val, None => break,};
+                match next_c {
+                    "~" => {
+                        tokens.push(Token::new(TokenType::Strike as usize, start, i - 1, matched_text));
+                        tokens.push(Token::new_double(TokenType::StrikeEnd as usize, i - 1, String::from("~~")));
+                        break;
+                    }
+                    _ => break,
+                }
+            }
+            _ => matched_text += c,
+        }
+        i += 1;
+    }
+
+    (i, line)
+}
+
+pub fn match_underline(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+    tokens.push(Token::new_double(TokenType::UnderlineBegin as usize, i - 1, String::from("__")));
+    i += 1;
+    let mut matched_text: String = String::new();
+
+    let start: usize = i;
+    while let Some(c) = text.get(i..=i) {
+        match c {
+            "_" => {
+                i += 1;
+                let next_c = match text.get(i..=i) { Some(val) => val, None => break,};
+                match next_c {
+                    "_" => {
+                        tokens.push(Token::new(TokenType::Underline as usize, start, i - 1, matched_text));
+                        tokens.push(Token::new_double(TokenType::UnderlineEnd as usize, i - 1, String::from("__")));
+                        break;
+                    }
+                    _ => break,
+                }
+            }
+            _ => matched_text += c,
+        }
+        i += 1;
+    }
+
+    (i, line)
+}
+
 pub fn match_list(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>) -> (usize, usize) { 
     // TODO change "1" to check for any digit
     let mut l_count: usize = 0;
