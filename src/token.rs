@@ -2,13 +2,15 @@ use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use pyo3::PyObjectProtocol;
 
+use crate::token_type::TokenType;
+
 #[pyclass]
 #[derive(Debug)]
 pub struct Token {
-    id: usize,
-    begin: usize,
-    end: usize,
-    content: String,
+    pub id: usize,
+    pub begin: usize,
+    pub end: usize,
+    pub content: String,
 }
 
 #[pymethods]
@@ -94,6 +96,15 @@ impl Token {
         }
     }
 
+    pub fn new_double(id: usize, begin: usize, content: String) -> Token {
+        Token {
+            id,
+            begin,
+            end: begin + 2,
+            content,
+        }
+    }
+
     pub fn new_tag(id: usize, begin: usize, content: String, tag: &str) -> Token {
         Token {
             id,
@@ -111,83 +122,13 @@ impl Token {
             content: String::from(" "),
         }
     }
-}
 
-#[derive(Debug)]
-pub enum TokenType {
-    Heading,
-    HeadingEnd,
-    HeadingText,
-    BlockquoteBegin,
-    BlockquoteEnd,
-    BlockquoteText,
-    Bold,
-    Italic,
-    Underline,
-    Strike,
-    Blockquote,
-    Code,
-    UnorderedList,
-    OrderedList,
-    Checked,
-    UnChecked,
-    Image,
-    Link,
-    Html,
-    Newline,
-    Tab,
-    Space,
-    Text,
-    Error,
-    CodeBegin,
-    CodeEnd,
-    BoldBegin,
-    BoldEnd,
-    UnderlineBegin,
-    UnderlineEnd,
-    ItalicBegin,
-    ItalicEnd,
-    HorizontalRule,
-    UnorderedListBegin,
-    UnorderedListEnd,
-    ListItemBegin,
-    ListItemEnd,
-    ListItemText,
-    OrderedListBegin,
-    OrderedListEnd,
-    CheckText,
-    CheckEnd,
-    ImageAltBegin,
-    ImageAltEnd,
-    ImageAltText,
-    ImagePathBegin,
-    ImagePathEnd,
-    ImagePathText,
-    LinkAltBegin,
-    LinkAltEnd,
-    LinkAltText,
-    LinkPathBegin,
-    LinkPathEnd,
-    LinkPathText,
-    HtmlBegin,
-    HtmlEnd,
-    HtmlText,
-    HtmlAttributeText,
-    StrikeBegin,
-    StrikeEnd,
-    CodeBlockBegin,
-    CodeBlockEnd,
-    Format,
-    CodeBlockKeyword,
-    CodeBlockSymbol,
-    CodeBlock,
-    CodeBlockString,
-    CodeBlockType,
-    CodeBlockFlow,
-    CodeBlockDigit,
-    CodeBlockClass,
-    CodeBlockFunction,
-    FormatBlockBegin,
-    FormatBlockEnd,
-    FormatBlockText,
+    pub fn empty(id: usize) -> Token {
+        Token {
+            id,
+            begin: 0,
+            end: 0,
+            content: String::new(),
+        }
+    }
 }

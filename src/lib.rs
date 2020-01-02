@@ -13,7 +13,12 @@ mod debug;
 
 mod token;
 use token::Token;
-use token::TokenType as tt;
+
+mod token_type;
+use token_type::TokenType as tt;
+
+mod lexer;
+use lexer::*;
 
 fn check_for_tag(tag: &str, text: &str, i: usize) -> bool {
     assert!(tag.is_empty(), "Tag length must be greater than zero!");
@@ -33,46 +38,6 @@ fn check_for_tag(tag: &str, text: &str, i: usize) -> bool {
     matched
 }
 
-fn match_heading(text: &str, mut i: usize, line: usize) -> (usize, usize, Token) {
-    let mut heading: String = String::new();
-    let mut h_count: usize = 0;
-
-    loop {
-        let next_c = &text[i..=i];
-
-        match next_c {
-            "#" => {
-                h_count += 1;
-                heading += next_c;
-            }
-            _ => break,
-        }
-        i += 1;
-    }
-
-    if h_count > 6 {
-        debug::warn(
-            format!(
-                "Line: {}, Index: {} -> Too many #! Heading only go up to 6!",
-                line, i
-            )
-            .as_str(),
-        );
-
-        return (
-            i,
-            line,
-            Token::new(tt::Error as usize, i - (h_count - 1) - 1, i, heading),
-        );
-    }
-
-    (
-        i,
-        line,
-        Token::new(tt::Heading as usize, i - (h_count - 1) - 1, i, heading),
-    )
-}
-
 #[pyfunction]
 fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
     let mut tokens: Vec<Token> = Vec::new();
@@ -87,19 +52,21 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                 line += 1;
             }
             "#" => {
-                let result = match_heading(&text, i, line);
+                let result = match_heading(&text, i, line, &mut tokens);
                 i = result.0;
                 line = result.1;
-                tokens.push(result.2);
-                tokens.push(Token::new_space(i));
+
+                if tokens[tokens.len() - 1].id == tt::Heading as usize {
+                    println!("runs");
+                }
             }
-            // "*" if &text[i + 1..i + 2] == "*" => {
-            //     tokens.push(Token::new(TokenType::Bold as usize, i, String::from("**")));
-            //     i += 1
-            // }
-            // "*" if &text[i + 1..i + 2] != "*" => {
-            //     tokens.push(Token::new(TokenType::Italic as usize, i, String::from("*")));
-            // }
+            "*" if &text[i + 1..=i + 1] == "*" => {
+                tokens.push(Token::new_double(tt::Bold as usize, i, String::from("**")));
+                i += 1
+            }
+            "*" if &text[i + 1..=i + 1] != "*" => {
+                tokens.push(Token::new_single(tt::Italic as usize, i, String::from("*")));
+            }
             _ => (),
         }
 

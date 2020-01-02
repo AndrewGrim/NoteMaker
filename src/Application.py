@@ -131,6 +131,7 @@ class Application(wx.Frame):
 		#tokens = lex(text)
 		error = False
 		keywords = (" ".join(keyword.kwlist) + " self").split()
+		open("tokens.log.txt", "w").writelines(str(tokens))
 		for i, t in enumerate(tokens):
 			self.edit.StartStyling(t.begin, 0xff)
 			if not error:
@@ -138,6 +139,8 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, INDICATOR.ERROR | STYLE.TEXT)
 					error = True
 				elif t.id == MD.HEADING:
+					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
+				elif t.id == MD.HEADING_TEXT:
 					self.edit.SetStyling(t.end - t.begin, STYLE.HEADING)
 				elif t.id in [MD.SPACE, MD.TAB, MD.NEWLINE]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.HIDDEN)

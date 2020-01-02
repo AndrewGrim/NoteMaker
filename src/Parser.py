@@ -45,7 +45,7 @@ def parse(tokens: List[LexerToken], html: str, css: str) -> None:
 	while i < len(tokens):
 		t = tokens[i]
 		if t.id == MD.HEADING:
-			htmlTags.append(f"<h{t.end - t.begin - 2}>")
+			htmlTags.append(f"<h{t.end - t.begin}>") # needs an extra "-2" for python ver
 		elif t.id == MD.HEADING_TEXT:
 			htmlTags.append(t.content)
 		elif t.id == MD.HEADING_END:
@@ -57,7 +57,7 @@ def parse(tokens: List[LexerToken], html: str, css: str) -> None:
 				if token == MD.HEADING:
 					tt = tokens[i - index]
 				index += 1
-			htmlTags.append(f"</h{tt.end - tt.begin - 2}>")
+			htmlTags.append(f"</h{tt.end - tt.begin}>") # needs an extra "-2" for python ver
 		elif t.id == MD.CHECKED:
 			htmlTags.append(f'<input type="checkbox" checked>')
 		elif t.id == MD.UNCHECKED:
