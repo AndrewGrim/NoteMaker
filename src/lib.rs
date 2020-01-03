@@ -126,6 +126,13 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                     }
                 }
             }
+            "-" => {
+                let next_c = match text.get(i..=i) { Some(val) => val, None => break,}; // TODO this and other occurances might be better with a return or a continue??
+                if next_c == "-" && match text.get(i + 1..=i + 1) { Some(val) => val, None => break,} == "-" {
+                    tokens.push(Token::new(TokenType::HorizontalRule as usize, i, i + 3, String::from("---")));
+                    i += 3; // to step over the newline following the hr
+                }
+            }
             "/" => {
                 i += 1;
                 let mut next_c = match text.get(i..=i) { Some(val) => val, None => break,};
