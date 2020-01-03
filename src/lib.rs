@@ -131,6 +131,15 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                 if next_c == "-" && match text.get(i + 2..=i + 2) { Some(val) => val, None => break,} == "-" {
                     tokens.push(Token::new(TokenType::HorizontalRule as usize, i, i + 3, String::from("---")));
                     i += 3; // to step over the newline following the hr
+                } else if next_c == " " {
+                    if match text.get(i + 2..=i + 5) { Some(val) => val, None => break,} == "[ ] " {
+                        tokens.push(Token::new(TokenType::UnChecked as usize, i, i + 6, String::from("- [ ] ")));
+                        i += 5;
+                    } else if next_c == " " && match text.get(i + 2..=i + 5) { Some(val) => val, None => break,} == "[x] " {
+                        tokens.push(Token::new(TokenType::Checked as usize, i, i + 6, String::from("- [x] ")));
+                        i += 5;
+                    } 
+                    tokens.push(Token::space(i));
                 }
             }
             "`" => {

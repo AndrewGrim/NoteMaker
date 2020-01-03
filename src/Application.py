@@ -141,7 +141,7 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, INDICATOR.ERROR | STYLE.TEXT)
 					error = True
 				elif t.id == MD.COMMENT:
-					print(self.edit.GetFirstVisibleLine())
+					#print(self.edit.GetFirstVisibleLine())
 					self.edit.SetStyling(t.end - t.begin, STYLE.COMMENT)
 				elif t.id == MD.HEADING:
 					self.edit.SetStyling(t.end - t.begin, STYLE.HEADING)
