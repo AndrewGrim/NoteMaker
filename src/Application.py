@@ -134,11 +134,14 @@ class Application(wx.Frame):
 		open("tokens.log", "w").writelines(str(tokens))
 		for i, t in enumerate(tokens):
 			self.edit.StartStyling(t.begin, 0xff)
+			#self.edit.SetStyling(t.end - t.begin, STYLE.HEADING)
+			"""eliminate the ifs in here and in the parser by just outputting the data thats stored in token"""
 			if not error:
 				if t.id == MD.ERROR:
 					self.edit.SetStyling(t.end - t.begin, INDICATOR.ERROR | STYLE.TEXT)
 					error = True
 				elif t.id == MD.COMMENT:
+					print(self.edit.GetFirstVisibleLine())
 					self.edit.SetStyling(t.end - t.begin, STYLE.COMMENT)
 				elif t.id == MD.HEADING:
 					self.edit.SetStyling(t.end - t.begin, STYLE.HEADING)

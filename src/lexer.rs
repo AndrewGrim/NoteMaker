@@ -25,7 +25,7 @@ pub fn match_heading(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec
     }
 
     tokens.push(Token::new(TokenType::Heading as usize, i - (h_count - 1) - 1, i, heading,));
-    tokens.push(Token::new_space(i));
+    tokens.push(Token::space(i));
     i += 1;
 
     let mut heading_text: String = String::new();

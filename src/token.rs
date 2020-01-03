@@ -6,6 +6,7 @@ use crate::token_type::TokenType;
 
 #[pyclass]
 #[derive(Debug)]
+#[derive(PartialEq)]
 pub struct Token {
     pub id: usize,
     pub begin: usize,
@@ -114,7 +115,7 @@ impl Token {
         }
     }
 
-    pub fn new_space(begin: usize) -> Token {
+    pub fn space(begin: usize) -> Token {
         Token {
             id: TokenType::Space as usize,
             begin,
@@ -130,5 +131,57 @@ impl Token {
             end: 0,
             content: String::new(),
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_token() {
+        assert_eq!(Token::new(TokenType::Heading as usize, 15, 16, String::from("#")),
+            Token {id: TokenType::Heading as usize, begin: 15, end: 16, content: String::from("#")});
+    }   
+
+    #[test]
+    #[should_panic]
+    fn fail_new_token() {
+        assert_eq!(Token::new(TokenType::CodeBlockKeyword as usize, 15, 21, String::from("class")),
+            Token {id: TokenType::CodeBlockKeyword as usize, begin: 15, end: 20, content: String::from("class")});
+
+        assert_eq!(Token::new(TokenType::CodeBlockKeyword as usize, 15, 21, String::from("class")),
+            Token {id: TokenType::CodeBlockKeyword as usize, begin: 15, end: 22, content: String::from("class")});
+    }  
+
+    #[test]
+    fn new_single_token() {
+        assert_eq!(Token::new_single(TokenType::Heading as usize, 15, String::from("#")),
+            Token {id: TokenType::Heading as usize, begin: 15, end: 16, content: String::from("#")});
+    }
+
+    #[test]
+    fn new_double_token() {
+        assert_eq!(Token::new_double(TokenType::Heading as usize, 15, String::from("##")),
+            Token {id: TokenType::Heading as usize, begin: 15, end: 17, content: String::from("##")});
+    }
+
+    #[test]
+    fn new_tag_token() {
+        assert_eq!(Token::new_tag(TokenType::Heading as usize, 15, String::from("tag"), "tag"),
+            Token {id: TokenType::Heading as usize, begin: 15, end: 18, content: String::from("tag")});
+    }
+
+    #[test]
+    fn new_space_token() {
+        assert_eq!(Token::space(15),
+            Token {id: TokenType::Space as usize, begin: 15, end: 16, content: String::from(" ")});
+    }
+
+    #[test]
+    fn new_empty_token() {
+        assert_eq!(Token::empty(TokenType::Heading as usize),
+            Token {id: TokenType::Heading as usize, begin: 0, end: 0, content: String::from("")});
     }
 }

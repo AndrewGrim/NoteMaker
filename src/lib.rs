@@ -40,7 +40,7 @@ fn check_for_tag(tag: &str, text: &str, i: usize) -> bool {
 
 #[pyfunction]
 fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
-    let mut tokens: Vec<Token> = Vec::new();
+    let mut tokens: Vec<Token> = Vec::with_capacity(text.len());
 
     let mut i: usize = 0;
     let mut line: usize = 1;

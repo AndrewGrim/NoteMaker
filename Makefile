@@ -2,6 +2,10 @@ debug: lexer
 	python src/Application.py "Notes/test.amd"
 release: lexer.release
 	python src/Application.py "Notes/test.amd"
+test:
+	cargo test
+commit:
+	cargo test && cargo clippy
 exe:
 	pyinstaller -w -F -i images/amd.ico src/Application.py && cp dist/Application.exe ../NoteMaker && mv Application.exe NoteMaker.exe
 lexer:
