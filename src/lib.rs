@@ -104,6 +104,28 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                     tokens.push(Token::new_single(TokenType::Text as usize, i, String::from(c)));
                 }
             }
+            ">" => {
+                let next_c = match text.get(i + 1..=i + 1) { Some(val) => val, None => break,};
+                if let " " = next_c {
+                    tokens.push(Token::new_single(TokenType::BlockquoteBegin as usize, i, String::from(">")));
+                    tokens.push(Token::space(i + 1));
+                    i += 2;
+
+                    let start = i;
+                    let mut blockquote_text: String = String::new();
+                    while let Some(next_c) = text.get(i..=i) {
+                        match next_c {
+                            "\n" => {
+                                tokens.push(Token::new(TokenType::BlockquoteText as usize, start, i, blockquote_text));
+                                tokens.push(Token::new_single(TokenType::BlockquoteEnd as usize, i, String::from("\n")));
+                                break
+                            }
+                            _ => blockquote_text += next_c,
+                        }
+                        i += 1;
+                    }
+                }
+            }
             "/" => {
                 i += 1;
                 let mut next_c = match text.get(i..=i) { Some(val) => val, None => break,};
