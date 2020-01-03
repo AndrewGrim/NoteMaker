@@ -118,7 +118,7 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                             "\n" => {
                                 tokens.push(Token::new(TokenType::BlockquoteText as usize, start, i, blockquote_text));
                                 tokens.push(Token::new_single(TokenType::BlockquoteEnd as usize, i, String::from("\n")));
-                                break
+                                break;
                             }
                             _ => blockquote_text += next_c,
                         }
@@ -127,10 +127,32 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                 }
             }
             "-" => {
-                let next_c = match text.get(i..=i) { Some(val) => val, None => break,}; // TODO this and other occurances might be better with a return or a continue??
-                if next_c == "-" && match text.get(i + 1..=i + 1) { Some(val) => val, None => break,} == "-" {
+                let next_c = match text.get(i + 1..=i + 1) { Some(val) => val, None => break,}; // TODO this and other occurances might be better with a return or a continue??
+                if next_c == "-" && match text.get(i + 2..=i + 2) { Some(val) => val, None => break,} == "-" {
                     tokens.push(Token::new(TokenType::HorizontalRule as usize, i, i + 3, String::from("---")));
                     i += 3; // to step over the newline following the hr
+                }
+            }
+            "`" => {
+                if text.get(i - 1..i).expect("panic at format block") == "f" {
+                    tokens.push(Token::new_single(TokenType::Format as usize, i - 1, String::from("f")));
+                    // TODO format block
+                } else {
+                    tokens.push(Token::new_single(TokenType::CodeBegin as usize, i, String::from("`")));
+                    let start = i;
+                    let mut code_text: String = String::new();
+                    i += 1;
+                    while let Some(next_c) = text.get(i..=i) {
+                        match next_c {
+                            "`" => {
+                                tokens.push(Token::new(TokenType::Code as usize, start, i, code_text));
+                                tokens.push(Token::new_single(TokenType::CodeEnd as usize, i, String::from("`")));
+                                break;
+                            }
+                            _ => code_text += next_c,
+                        }
+                        i += 1;
+                    }
                 }
             }
             "/" => {
