@@ -283,6 +283,54 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                     }
                 }
             }
+            "<" => {
+                let mut html: bool = false;
+                if match text.get(i + 1..=i + 1) { Some(val) => val, None => break,} == "<" {
+                    tokens.push(Token::new_double(TokenType::HtmlBegin as usize, i, String::from("<<")));
+                    i += 1;
+                    html = true;
+                } else if match text.get(i + 1..=i + 1) { Some(val) => val, None => break,} == "/" {
+                    tokens.push(Token::new_double(TokenType::HtmlBegin as usize, i, String::from("</")));
+                    i += 1;
+                    html = true;
+                }
+
+                if html {
+                    i += 1;
+                    let start: usize = i;
+                    while let Some(c) = text.get(i..=i) {
+                        match c {
+                            ">" => {
+                                tokens.push(Token::new_single(TokenType::HtmlEnd as usize, i, String::from(">")));
+                                break;
+                            }
+                            "\"" => {
+                                tokens.push(Token::new_single(TokenType::HtmlAttributeText as usize, i, String::from("\"")));
+                                i += 1;
+                                while let Some(c) = text.get(i..=i) {
+                                    match c {
+                                        "\"" => {
+                                            tokens.push(Token::new_single(TokenType::HtmlAttributeText as usize, i, String::from("\"")));
+                                            break;
+                                        }
+                                        "\n" => {
+                                            debug::warn(format!("Line: {} Index: {} -> Couldn't find closing '\"' before a newline!", line, i).as_str());
+                                            tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(c)));
+                                            line += 1;
+                                            i += 1;
+                                            break;
+                                        }
+                                        _ => tokens.push(Token::new_single(TokenType::HtmlAttributeText as usize, i, String::from(c))),
+                                    }
+                                    i += 1;
+                                }
+                            }
+                            _ => tokens.push(Token::new_single(TokenType::HtmlText as usize, i, String::from(c))),
+                        }
+                        i += 1;
+                    }
+                }
+            }
             "/" => {
                 i += 1;
                 let mut next_c = match text.get(i..=i) { Some(val) => val, None => break,};
