@@ -146,8 +146,25 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
             }
             "`" => {
                 if text.get(i - 1..i).expect("panic at format block") == "f" {
+                    tokens.pop().expect("failed at removing 'f'");
                     tokens.push(Token::new_single(TokenType::Format as usize, i - 1, String::from("f")));
-                    // TODO format block
+                    tokens.push(Token::new_single(TokenType::FormatBlockBegin as usize, i, String::from("`")));
+                    i += 1;
+                    while let Some(c) = text.get(i..=i) {
+                        match c {
+                            "`" => {
+                                tokens.push(Token::new_single(TokenType::FormatBlockEnd as usize, i, String::from("`")));
+                                i += 1; // to step over the following newline
+                                break;
+                            }
+                            "\n" =>  {
+                                tokens.push(Token::new_single(TokenType::FormatBlockText as usize, i, String::from(c)));
+                                line += 1;
+                            }
+                            _ => tokens.push(Token::new_single(TokenType::FormatBlockText as usize, i, String::from(c))),
+                        }
+                        i += 1;
+                    }
                 } else {
                     tokens.push(Token::new_single(TokenType::CodeBegin as usize, i, String::from("`")));
                     let start = i;
@@ -160,7 +177,7 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                                 tokens.push(Token::new_single(TokenType::CodeEnd as usize, i, String::from("`")));
                                 break;
                             }
-                            "\n" => line += 1,
+                            "\n" => line += 1, // this should prob break since its now goint to keep the formatting anyway
                             _ => code_text += next_c,
                         }
                         i += 1;

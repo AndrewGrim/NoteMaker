@@ -181,12 +181,16 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id in [MD.IMAGE_ALT_BEGIN, MD.IMAGE_ALT_END, MD.IMAGE_PATH_BEGIN, MD.IMAGE_PATH_END]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id in [MD.IMAGE_ALT_TEXT, MD.IMAGE_PATH_TEXT]:
+				elif t.id == MD.IMAGE_ALT_TEXT:
 					self.edit.SetStyling(t.end - t.begin, STYLE.IMAGE)
+				elif t.id == MD.IMAGE_PATH_TEXT:
+					self.edit.SetStyling(t.end - t.begin, STYLE.IMAGE_UNDERLINED)
 				elif t.id in [MD.LINK_ALT_BEGIN, MD.LINK_ALT_END, MD.LINK_PATH_BEGIN, MD.LINK_PATH_END]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id in [MD.LINK_ALT_TEXT, MD.LINK_PATH_TEXT]:
+				elif t.id == MD.LINK_ALT_TEXT:
 					self.edit.SetStyling(t.end - t.begin, STYLE.LINK)
+				elif t.id == MD.LINK_PATH_TEXT:
+					self.edit.SetStyling(t.end - t.begin, STYLE.LINK_UNDERLINED)
 				elif t.id in [MD.HTML_BEGIN, MD.HTML_END]:
 					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
 				elif t.id == MD.HTML_TEXT:
@@ -195,6 +199,8 @@ class Application(wx.Frame):
 					self.edit.SetStyling(t.end - t.begin, STYLE.HTML_ATTRIBUTE)
 				elif t.id == MD.FORMAT:
 					self.edit.SetStyling(t.end - t.begin, STYLE.FORMAT)
+				elif t.id == MD.FORMATBLOCK_TEXT:
+					self.edit.SetStyling(t.end - t.begin, STYLE.CODE)
 				elif t.id == MD.CODEBLOCK_KEYWORD:
 					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_KEYWORD)
 				elif t.id == MD.CODEBLOCK_SYMBOL:
@@ -344,7 +350,9 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(STYLE.UNDERLINE, "fore:#d9a62e,underline,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(STYLE.ITALIC, "fore:#7d9d90,italic,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(STYLE.IMAGE, "fore:#cb8296,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(STYLE.IMAGE_UNDERLINED, "fore:#cb8296,underline,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(STYLE.LINK, "fore:#cb8296,size:%(size)d" % faces)
+		self.edit.StyleSetSpec(STYLE.LINK_UNDERLINED, "fore:#cb8296,underline,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(STYLE.HTML, "fore:#cb8296,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(STYLE.HTML_ATTRIBUTE, "fore:#d9a62e,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(STYLE.FORMAT, "fore:#e44533,back:#282828,face:%(mono)s,size:%(size)d" % faces)
