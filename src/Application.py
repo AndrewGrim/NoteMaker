@@ -135,7 +135,9 @@ class Application(wx.Frame):
 		for i, t in enumerate(tokens):
 			self.edit.StartStyling(t.begin, 0xff)
 			#self.edit.SetStyling(t.end - t.begin, STYLE.HEADING)
-			"""eliminate the ifs in here and in the parser by just outputting the data thats stored in token"""
+			"""eliminate the ifs in here and in the parser by just outputting the data thats stored in token
+				also change from html file to a String and use loadText instead of loadURL
+			"""
 			if not error:
 				if t.id == MD.ERROR:
 					self.edit.SetStyling(t.end - t.begin, INDICATOR.ERROR | STYLE.TEXT)

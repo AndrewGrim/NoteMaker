@@ -20,27 +20,24 @@ use token_type::TokenType;
 mod lexer;
 use lexer::*;
 
-fn check_for_tag(tag: &str, text: &str, i: usize) -> bool {
-    assert!(tag.is_empty(), "Tag length must be greater than zero!");
-
-    let mut matched: bool = true;
-
-    for num in 0..tag.len() {
-        let c = text.chars().nth(i + num).expect("error");
-        let t = tag.chars().nth(num).expect("error");
-
-        if c != t {
-            matched = false;
-            return matched;
-        }
-    }
-
-    matched
-}
-
 #[pyfunction]
 fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
     let mut tokens: Vec<Token> = Vec::with_capacity(text.len());
+
+    let keywords = [
+		String::from("as"), String::from("assert"), String::from("async"), String::from("await"), String::from("class"), String::from("continue"), String::from("def"), String::from("del"),  
+		String::from("from"), String::from("global"),  String::from("import"),  String::from("lambda"), String::from("nonlocal"), String::from("self"),
+    ];
+    
+	let flow = [
+		String::from("or"), String::from("pass"), String::from("raise"), String::from("return"), String::from("try"), String::from("while"), String::from("with"), String::from("yield"), String::from("if"), 
+		String::from("in"), String::from("is"), String::from("elif"), String::from("else"), String::from("except"), String::from("finally"), String::from("for"), String::from("and"), String::from("break"), 
+		String::from("not"), 
+    ];
+    
+	let types = [
+		String::from("None"), String::from("str"), String::from("int"), String::from("bool"), String::from("float"), String::from("False"), String::from("True"),
+	];
 
     let mut i: usize = 0;
     let mut line: usize = 1;
@@ -145,7 +142,7 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                 }
             }
             "`" => {
-                if text.get(i - 1..i).expect("panic at format block") == "f" {
+                if text.get(i - 1..i).expect("panic at format block") == "f" && match text.get(i + 1..=i + 1) { Some(val) => val, None => break,} == "\n" {
                     tokens.pop().expect("failed at removing 'f'");
                     tokens.push(Token::new_single(TokenType::Format as usize, i - 1, String::from("f")));
                     tokens.push(Token::new_single(TokenType::FormatBlockBegin as usize, i, String::from("`")));
@@ -162,6 +159,118 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                                 line += 1;
                             }
                             _ => tokens.push(Token::new_single(TokenType::FormatBlockText as usize, i, String::from(c))),
+                        }
+                        i += 1;
+                    }
+                } else if text.get(i - 1..i).expect("panic at format block") == "f" && match text.get(i + 1..=i + 1) { Some(val) => val, None => break,} != "\n" {
+                    tokens.pop().expect("failed at removing 'f'");
+                    tokens.push(Token::new_single(TokenType::Format as usize, i - 1, String::from("f")));
+                    tokens.push(Token::new_single(TokenType::CodeBlockBegin as usize, i, String::from("`")));
+                    i += 1;
+                    let start = i;
+                    let mut language = String::new(); // TODO use language to read in file with grammar?
+                    while let Some(c) = text.get(i..=i) {
+                        match c {
+                            "\n" => {
+                                tokens.push(Token::new(TokenType::Format as usize, start, i, language));
+                                break;
+                            }
+                            _ => language += c,
+                        }
+                        i += 1;
+                    }
+                    while let Some(c) = text.get(i..=i) {
+                        match c {
+                            "`" => {
+                                tokens.push(Token::new_single(TokenType::CodeBlockEnd as usize, i, String::from("`")));
+                                i += 1; // to step over the following newline
+                                break;
+                            }
+                            "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9" =>  {
+                                tokens.push(Token::new_single(TokenType::CodeBlockDigit as usize, i, String::from(c)));
+                            }
+                            ";"|":"|"("|")"|"{"|"}"|"["|"]"|"."|","|"+"|"-"|"*"|"/"|"<"|">"|"\\"|"&"|"="|"!"|"%" =>  {
+                                tokens.push(Token::new_single(TokenType::CodeBlockSymbol as usize, i, String::from(c)));
+                            }
+                            "\""|"'" => {
+                                tokens.push(Token::new_single(TokenType::CodeBlockString as usize, i, String::from(c)));
+                                i += 1;
+                                while let Some(c) = text.get(i..=i) {
+                                    match c {
+                                        "\""|"'" => {
+                                            tokens.push(Token::new_single(TokenType::CodeBlockString as usize, i, String::from(c)));
+                                            break;
+                                        }
+                                        "`" => {
+                                            line += 1;
+                                            i -= 1; // to make the outer loop match the closing `
+                                            break;
+                                        }
+                                        _ => tokens.push(Token::new_single(TokenType::CodeBlockString as usize, i, String::from(c))),
+                                    }
+                                    i += 1;
+                                }
+                            }
+                            _ => {
+                                let mut key = false;
+                                for k in keywords.iter() {
+                                    if match_keyword(k, &text, i) {
+                                        tokens.push(Token::new(TokenType::CodeBlockKeyword as usize, i, i + k.len(), String::from(k)));
+                                        i += k.len() - 1;
+                                        key = true;
+                                        if k == "class" {
+                                            i += 1;
+                                            while let Some(c) = text.get(i..=i) {
+                                                match c {
+                                                    ":"|"(" => {
+                                                        tokens.push(Token::new_single(TokenType::CodeBlockSymbol as usize, i, String::from(c)));
+                                                        break;
+                                                    }
+                                                    _ => tokens.push(Token::new_single(TokenType::CodeBlockClass as usize, i, String::from(c))),
+                                                }
+                                                i += 1;
+                                            }
+                                        } else if k == "def" {
+                                            i += 1;
+                                            while let Some(c) = text.get(i..=i) {
+                                                match c {
+                                                    "(" => {
+                                                        tokens.push(Token::new_single(TokenType::CodeBlockSymbol as usize, i, String::from(c)));
+                                                        break;
+                                                    }
+                                                    _ => tokens.push(Token::new_single(TokenType::CodeBlockClass as usize, i, String::from(c))),
+                                                }
+                                                i += 1;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
+                                if !key {
+                                    for f in flow.iter() {
+                                        if match_keyword(f, &text, i) {
+                                            tokens.push(Token::new(TokenType::CodeBlockFlow as usize, i, i + f.len(), String::from(f)));
+                                            i += f.len() - 1;
+                                            key = true;
+                                            break;
+                                        }
+                                    }
+                                    if !key {
+                                        for t in types.iter() {
+                                            if match_keyword(t, &text, i) {
+                                                tokens.push(Token::new(TokenType::CodeBlockType as usize, i, i + t.len(), String::from(t)));
+                                                i += t.len() - 1;
+                                                key = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if !key {
+                                    tokens.push(Token::new_single(TokenType::CodeBlock as usize, i, String::from(c)));
+                                }
+                            }
                         }
                         i += 1;
                     }

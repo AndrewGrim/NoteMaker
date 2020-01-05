@@ -248,3 +248,26 @@ pub fn match_list(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>
 
     (i, line)
 }
+
+pub fn match_keyword(keyword: &str, text: &str, i: usize) -> bool {
+    assert!(!keyword.is_empty(), "Keyword length must be greater than zero!");
+
+    let mut matched: bool = true;
+
+    for num in 0..keyword.len() {
+        let c = text.chars().nth(i + num).expect("error");
+        let t = keyword.chars().nth(num).expect("error");
+
+        if c != t {
+            matched = false;
+            return matched;
+        }
+    }
+
+    if matched && text.chars().nth(i + keyword.len()).expect("error").is_alphanumeric() || text.chars().nth(i - 1).expect("error").is_alphanumeric() {
+        matched = false;
+        return matched;
+    }
+
+    matched
+}
