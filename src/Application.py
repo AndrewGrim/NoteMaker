@@ -8,6 +8,8 @@ import keyword
 import wx
 import wx.html2 as webview
 import wx.stc as stc
+from wxasync import AsyncBind, WxAsyncApp, StartCoroutine
+from asyncio.events import get_event_loop
 
 from Lexer import *
 from Styles import *
@@ -434,8 +436,9 @@ class Application(wx.Frame):
 
 if __name__ == '__main__':
 	start = time.time()
-	app = wx.App()
+	app = WxAsyncApp()
 	frm = Application(None)
 	end = time.time()
 	info(f"Application load time: {round(end - start, 2)}s")
-	app.MainLoop()
+	loop = get_event_loop()
+	loop.run_until_complete(app.MainLoop())
