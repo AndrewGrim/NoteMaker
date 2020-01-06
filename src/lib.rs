@@ -8,6 +8,7 @@ use std::fs;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use pyo3::PyObjectProtocol;
+use regex::Regex;
 
 mod debug;
 
@@ -19,6 +20,131 @@ use token_type::TokenType;
 
 mod lexer;
 use lexer::*;
+
+#[pyfunction]
+fn regex_lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
+    let keywords = [
+		String::from("as"), String::from("assert"), String::from("async"), String::from("await"), String::from("class"), String::from("continue"), String::from("def"), String::from("del"),  
+		String::from("from"), String::from("global"),  String::from("import"),  String::from("lambda"), String::from("nonlocal"), String::from("self"),
+    ];
+
+    let flow = [
+		String::from("or"), String::from("pass"), String::from("raise"), String::from("return"), String::from("try"), String::from("while"), String::from("with"), String::from("yield"), String::from("if"), 
+		String::from("in"), String::from("is"), String::from("elif"), String::from("else"), String::from("except"), String::from("finally"), String::from("for"), String::from("and"), String::from("break"), 
+		String::from("not"), 
+    ];
+    
+	let types = [
+		String::from("None"), String::from("str"), String::from("int"), String::from("bool"), String::from("float"), String::from("False"), String::from("True"),
+    ];
+    
+    let declaration = [String::from("class"), String::from("def")];
+
+    let mut tokens: Vec<Token> = Vec::new();
+
+    for mat in Regex::new(r"#+").unwrap().find_iter(&text) {
+        tokens.push(Token::new(1, mat.start(), mat.end(), String::from(mat.as_str())));
+    }
+
+    for o_mat in Regex::new(r"<<[^>]+>").unwrap().find_iter(&text) {
+        tokens.push(Token::new(14, o_mat.start(), o_mat.end(), String::from(o_mat.as_str())));
+        for mat in Regex::new(r#""[^"]+""#).unwrap().find_iter(o_mat.as_str()) {
+            tokens.push(Token::new(15, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+        }
+    }
+
+    for mat in Regex::new(r"</[^>]+>").unwrap().find_iter(&text) {
+        tokens.push(Token::new(14, mat.start(), mat.end(), String::from(mat.as_str())));
+    }
+    
+    for mat in Regex::new(r"[!?]\[[\w\s]+\]").unwrap().find_iter(&text) {
+        tokens.push(Token::new(12, mat.start(), mat.end(), String::from(mat.as_str())));
+    }
+    
+    for mat in Regex::new(r"\]\([\w\s.-_']+\)").unwrap().find_iter(&text) {
+        tokens.push(Token::new(12, mat.start(), mat.end(), String::from(mat.as_str())));
+    }
+
+    for mat in Regex::new(r"[<>\\/*:;!?\[\]>\(\)\-~_,.=]").unwrap().find_iter(&text) {
+        tokens.push(Token::new(5, mat.start(), mat.end(), String::from(mat.as_str())));
+    }
+
+    for mat in Regex::new(r"__[^_]+__").unwrap().find_iter(&text) {
+        tokens.push(Token::new(9, mat.start() + 2, mat.end() - 2, String::from(mat.as_str())));
+    }
+
+    for mat in Regex::new(r"~~[^~]+~~").unwrap().find_iter(&text) {
+        tokens.push(Token::new(7, mat.start() + 2, mat.end() - 2, String::from(mat.as_str())));
+    }
+
+    for mat in Regex::new(r"\*\*[^*]+\*\*").unwrap().find_iter(&text) {
+        tokens.push(Token::new(8, mat.start() + 2, mat.end() - 2, String::from(mat.as_str())));
+    }
+
+    for mat in Regex::new(r"`[^`]+`").unwrap().find_iter(&text) {
+        tokens.push(Token::new(4, mat.start(), mat.end(), String::from(mat.as_str())));
+    }
+
+    for mat in Regex::new(r"p`").unwrap().find_iter(&text) {
+        tokens.push(Token::new_single(16, mat.start(), String::from("p")));
+    }
+
+    for mat in Regex::new(r"\- \[.\]").unwrap().find_iter(&text) {
+        tokens.push(Token::new_single(13, mat.end() - 2, String::from(mat.as_str())));
+    }
+
+    for mat in Regex::new(r"\s//[^\n]+\s").unwrap().find_iter(&text) {
+        tokens.push(Token::new(27, mat.start(), mat.end(), String::from(mat.as_str())));
+    }
+
+    for o_mat in Regex::new(r"f`[^`]+`").unwrap().find_iter(&text) {
+        for mat in Regex::new(r".").unwrap().find_iter(o_mat.as_str()) {
+            tokens.push(Token::new_single(19, mat.start() + o_mat.start(), String::from(mat.as_str())));
+        }
+
+        tokens.push(Token::new_single(16, o_mat.start(), String::from("f")));
+        tokens.push(Token::new_single(4, o_mat.start() + 1, String::from("`")));
+        tokens.push(Token::new_single(4, o_mat.end() - 1, String::from("`")));
+
+        for key in keywords.iter() {
+            for mat in Regex::new((r"\b".to_string() + key + r"\b").as_str()).unwrap().find_iter(o_mat.as_str()) {
+                tokens.push(Token::new(17, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+            }
+        }
+
+        for f in flow.iter() {
+            for mat in Regex::new((r"\b".to_string() + f + r"\b").as_str()).unwrap().find_iter(o_mat.as_str()) {
+                tokens.push(Token::new(25, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+            }
+        }
+
+        for t in types.iter() {
+            for mat in Regex::new((r"\b".to_string() + t + r"\b").as_str()).unwrap().find_iter(o_mat.as_str()) {
+                tokens.push(Token::new(24, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+            }
+        }
+
+        for mat in Regex::new(r"\d").unwrap().find_iter(o_mat.as_str()) {
+            tokens.push(Token::new(26, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+        }
+
+        for mat in Regex::new(r"[<>\\/*:;!?\[\]>\(\)\-~_,.=]").unwrap().find_iter(o_mat.as_str()) {
+            tokens.push(Token::new(18, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+        }
+
+        for d in declaration.iter() {
+            for mat in Regex::new((r"\b".to_string() + d + r"\b[^({:<]+[\({:<]").as_str()).unwrap().find_iter(o_mat.as_str()) {
+                tokens.push(Token::new(22, mat.start() + o_mat.start() + d.len(), mat.end() + o_mat.start() - 1, String::from(mat.as_str())));
+            }
+        }
+
+        for mat in Regex::new(r#"['"][^"']+["']"#).unwrap().find_iter(o_mat.as_str()) {
+            tokens.push(Token::new(20, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+        }
+    }
+
+    Ok(tokens)
+}
 
 #[pyfunction]
 fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
@@ -142,8 +268,8 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                 }
             }
             "`" => {
-                if text.get(i - 1..i).expect("panic at format block") == "f" && match text.get(i + 1..=i + 1) { Some(val) => val, None => break,} == "\n" {
-                    tokens.pop().expect("failed at removing 'f'");
+                if text.get(i - 1..i).expect("panic at pre block") == "p" && match text.get(i + 1..=i + 1) { Some(val) => val, None => break,} == "\n" {
+                    tokens.pop().expect("failed at removing 'p'");
                     tokens.push(Token::new_single(TokenType::Format as usize, i - 1, String::from("f")));
                     tokens.push(Token::new_single(TokenType::FormatBlockBegin as usize, i, String::from("`")));
                     i += 1;
@@ -482,6 +608,7 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
 #[pymodule]
 fn lexer(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(lex))?;
+    m.add_wrapped(wrap_pyfunction!(regex_lex))?;
 
     Ok(())
 }

@@ -7,11 +7,22 @@ use crate::token_type::TokenType;
 #[pyclass]
 #[derive(Debug)]
 #[derive(PartialEq)]
+pub struct NewToken {
+    pub id: usize,
+    pub begin: usize,
+    pub end: usize,
+    pub content: String,
+}
+
+#[pyclass]
+#[derive(Debug)]
+#[derive(PartialEq)]
 pub struct Token {
     pub id: usize,
     pub begin: usize,
     pub end: usize,
     pub content: String,
+    // TODO add html so eliminate the python parser
 }
 
 #[pymethods]

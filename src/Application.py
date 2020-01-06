@@ -4,6 +4,7 @@ import sys
 import platform
 import subprocess
 import keyword
+import multiprocessing as mp
 
 import wx
 import wx.html2 as webview
@@ -19,6 +20,7 @@ from Debug import *
 from Parser import *
 
 import lexer
+
 
 class Application(wx.Frame):
 
@@ -57,6 +59,7 @@ class Application(wx.Frame):
 		self.edit.SetIndent(2)
 		self.edit.SetUseTabs(False) # true by default make it an option
 		self.setupStyling()
+
 		self.edit.Bind(wx.EVT_KEY_UP, self.onKeyUp)
 		self.edit.Bind(stc.EVT_STC_UPDATEUI, self.onUpdateUI)
 		#self.setColors()
@@ -94,7 +97,6 @@ class Application(wx.Frame):
 		w = self.GetSize()[0]
 		w = w - 7 * 100
 		self.status.SetStatusWidths([100, 100, 100, 100, w, 100, 100])
-
 		self.onKeyUp(wx.KeyEvent(wx.wxEVT_NULL))
 		self.Bind(wx.EVT_SIZE, self.onSize)
 		self.Bind(wx.EVT_CLOSE, self.onClose)
@@ -127,113 +129,16 @@ class Application(wx.Frame):
 		self.Thaw()
 
 	def onKeyUp(self, event):
-		start = time.time()
-		text = self.edit.GetValue()
-		tokens = lexer.lex(text)
-		#tokens = lex(text)
-		error = False
-		keywords = (" ".join(keyword.kwlist) + " self").split()
-		open("tokens.log", "w").writelines(str(tokens))
-		for i, t in enumerate(tokens):
+		#start = time.time()
+		tokens = lexer.regex_lex(self.edit.GetValue())
+		#end = time.time()
+		#print(f"reg lex: {end - start}")
+		#start = time.time()
+		for t in tokens:
 			self.edit.StartStyling(t.begin, 0xff)
-			#self.edit.SetStyling(t.end - t.begin, STYLE.HEADING)
-			"""eliminate the ifs in here and in the parser by just outputting the data thats stored in token
-				also change from html file to a String and use loadText instead of loadURL
-			"""
-			if not error:
-				if t.id == MD.ERROR:
-					self.edit.SetStyling(t.end - t.begin, INDICATOR.ERROR | STYLE.TEXT)
-					error = True
-				elif t.id == MD.COMMENT:
-					#print(self.edit.GetFirstVisibleLine())
-					self.edit.SetStyling(t.end - t.begin, STYLE.COMMENT)
-				elif t.id == MD.HEADING:
-					self.edit.SetStyling(t.end - t.begin, STYLE.HEADING)
-				elif t.id == MD.HEADING_TEXT:
-					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
-				elif t.id in [MD.SPACE, MD.TAB, MD.NEWLINE]:
-					self.edit.SetStyling(t.end - t.begin, STYLE.HIDDEN)
-				elif t.id in [MD.CODE, MD.CODE_BEGIN, MD.CODE_END, MD.CODEBLOCK_BEGIN, MD.CODEBLOCK_END]:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODE)
-				elif t.id == MD.BLOCKQUOTE_BEGIN:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id in [MD.STRIKE_BEGIN, MD.STRIKE_END]:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id == MD.STRIKE:
-					self.edit.SetStyling(t.end - t.begin, STYLE.STRIKE)
-				elif t.id in [MD.BOLD_BEGIN, MD.BOLD_END]:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id == MD.BOLD:
-					self.edit.SetStyling(t.end - t.begin, STYLE.BOLD)
-				elif t.id in [MD.UNDERLINE_BEGIN, MD.UNDERLINE_END]:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id == MD.UNDERLINE:
-					self.edit.SetStyling(t.end - t.begin, STYLE.UNDERLINE)
-				elif t.id in [MD.ITALIC_BEGIN, MD.ITALIC_END]:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id == MD.ITALIC:
-					self.edit.SetStyling(t.end - t.begin, STYLE.ITALIC)
-				elif t.id == MD.HORIZONTAL_RULE:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id == MD.LIST_ITEM_BEGIN:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id in [MD.ULIST_BEGIN, MD.OLIST_BEGIN]:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id in [MD.ULIST_END, MD.OLIST_END]:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id in [MD.CHECKED, MD.UNCHECKED]:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id in [MD.IMAGE_ALT_BEGIN, MD.IMAGE_ALT_END, MD.IMAGE_PATH_BEGIN, MD.IMAGE_PATH_END]:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id == MD.IMAGE_ALT_TEXT:
-					self.edit.SetStyling(t.end - t.begin, STYLE.IMAGE)
-				elif t.id == MD.IMAGE_PATH_TEXT:
-					self.edit.SetStyling(t.end - t.begin, STYLE.IMAGE_UNDERLINED)
-				elif t.id in [MD.LINK_ALT_BEGIN, MD.LINK_ALT_END, MD.LINK_PATH_BEGIN, MD.LINK_PATH_END]:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id == MD.LINK_ALT_TEXT:
-					self.edit.SetStyling(t.end - t.begin, STYLE.LINK)
-				elif t.id == MD.LINK_PATH_TEXT:
-					self.edit.SetStyling(t.end - t.begin, STYLE.LINK_UNDERLINED)
-				elif t.id in [MD.HTML_BEGIN, MD.HTML_END]:
-					self.edit.SetStyling(t.end - t.begin, STYLE.SYMBOL)
-				elif t.id == MD.HTML_TEXT:
-					self.edit.SetStyling(t.end - t.begin, STYLE.HTML)
-				elif t.id == MD.HTML_ATTRIBUTE_TEXT:
-					self.edit.SetStyling(t.end - t.begin, STYLE.HTML_ATTRIBUTE)
-				elif t.id == MD.FORMAT:
-					self.edit.SetStyling(t.end - t.begin, STYLE.FORMAT)
-				elif t.id == MD.FORMATBLOCK_TEXT:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODE)
-				elif t.id == MD.CODEBLOCK_KEYWORD:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_KEYWORD)
-				elif t.id == MD.CODEBLOCK_SYMBOL:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_SYMBOL)
-				elif t.id == MD.CODEBLOCK_STRING:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_STRING)
-				elif t.id == MD.CODEBLOCK_TYPE:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_TYPE)
-				elif t.id == MD.CODEBLOCK_FLOW:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_FLOW)
-				elif t.id == MD.CODEBLOCK_DIGIT:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_DIGIT)
-				elif t.id == MD.CODEBLOCK_CLASS:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_CLASS)
-				elif t.id == MD.CODEBLOCK_FUNCTION:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_FUNCTION)
-				elif t.id == MD.CODEBLOCK:
-					self.edit.SetStyling(t.end - t.begin, STYLE.CODEBLOCK_TEXT)
-				else:
-					self.edit.SetStyling(t.end - t.begin, STYLE.TEXT)
-			elif t.id == MD.NEWLINE:
-				error = False
-
-		end = time.time()
-		info(f"Lex and highlight time: {round(end - start, 2)}")
-		start = time.time()
-		parse(tokens, self.html, self.exeDir)
-		end = time.time()
-		info(f"Parse time: {round(end - start, 2)}")
+			self.edit.SetStyling(t.end - t.begin, t.id)
+		#end = time.time()
+		#print(f"color: {end - start}")
 		event.Skip()
 
 

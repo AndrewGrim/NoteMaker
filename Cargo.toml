@@ -11,3 +11,6 @@ crate-type = ["cdylib"]
 [dependencies.pyo3]
 version = "*"
 features = ["extension-module"]
+
+[dependencies.regex]
+version = "*"
