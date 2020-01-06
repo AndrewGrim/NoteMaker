@@ -46,7 +46,6 @@ class Application(wx.Frame):
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
 
 		self.edit = stc.StyledTextCtrl(panel)
-		#self.edit.SetLexer(stc.STC_LEX_MARKDOWN)
 		self.edit.SetMarginType(1, stc.STC_MARGIN_NUMBER)
 		self.edit.SetMarginWidth(1, 30)
 		self.edit.SetWrapMode(stc.STC_WRAP_WORD)
@@ -62,7 +61,6 @@ class Application(wx.Frame):
 
 		self.edit.Bind(wx.EVT_KEY_UP, self.onKeyUp)
 		self.edit.Bind(stc.EVT_STC_UPDATEUI, self.onUpdateUI)
-		#self.setColors()
 
 		sizer.Add(self.edit, 4, wx.EXPAND)
 
@@ -277,61 +275,8 @@ class Application(wx.Frame):
 		self.edit.StyleSetSpec(STYLE.CODEBLOCK_TYPE, "fore:#EFCD1E,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(STYLE.CODEBLOCK_FLOW, "fore:#d8a0df,back:#282828,face:%(mono)s,size:%(size)d" % faces)
 		self.edit.StyleSetSpec(STYLE.CODEBLOCK_DIGIT, "fore:#b5ce92,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		# maybe have additional styles for the inside which is bold/underlined
-		# and maybe lex these same way that i do code?
 		self.edit.IndicatorSetStyle(0, stc.STC_INDIC_SQUIGGLE)
 		self.edit.IndicatorSetForeground(0, wx.RED)
-
-
-	def setColors(self):
-		# custom highlight link and html
-
-		faces = {
-			'times': 'Times New Roman',
-			'mono' : 'Courier New',
-			'helv' : 'Arial',
-			'other': 'Comic Sans MS',
-			'size' : 10,
-			'size2': 8,
-		}
-
-		self.edit.StyleSetSpec(stc.STC_STYLE_DEFAULT, "back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		#self.edit.StyleSetSpec(0, "fore:#FF00FF,back:#282828,face:%(mono)s,size:%(size)d" % faces)
-		#self.edit.StyleSetSpec(stc.STC_STYLE_DEFAULT, "face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleClearAll()  # Reset all to be like the default
-
-		self.edit.StyleSetSpec(stc.STC_STYLE_DEFAULT, "face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_STYLE_LINENUMBER,  "fore:#928374,back:#212121,face:%(mono)s,size:%(size2)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_STYLE_INDENTGUIDE, "fore:#FF00FF,back:#FF0000,bold")
-		self.edit.StyleSetSpec(stc.STC_STYLE_CONTROLCHAR, "face:%(other)s" % faces)
-		self.edit.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,  "fore:#FFFFFF,back:#0000FF,bold")
-		self.edit.StyleSetSpec(stc.STC_STYLE_BRACEBAD, "fore:#FFFFFF,back:#FF0000,bold")
-
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_DEFAULT, "fore:#d5c4a1,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_ULIST_ITEM, "fore:#81ac71,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_OLIST_ITEM, "fore:#81ac71,bold,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_BLOCKQUOTE, "fore:#81ac71,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_HRULE, "fore:#81ac71,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_LINK, "fore:#cb8296,bold,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_CODEBK, "bold,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_CODE, "fore:#b8bb26,face:%(other)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_CODE2, "fore:#b8bb26,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_STRONG1, "fore:#d9a62e,bold,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_STRONG2, "fore:#d9a62e,underline,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_EM1, "fore:#7d9d90,italic,face:%(mono)s,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_EM2, "fore:#7d9d90,face:%(mono)s,back:#E0C0E0,eol,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_STRIKEOUT, "fore:#e44533,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_PRECHAR, "fore:#FFFFFF,face:%(mono)s,back:#282828,eol,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_HEADER1, "fore:#EFCD1E,face:%(mono)s,back:#282828,eol,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_HEADER2, "fore:#EFCD1E,face:%(mono)s,back:#282828,eol,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_HEADER3, "fore:#EFCD1E,face:%(mono)s,back:#282828,eol,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_HEADER4, "fore:#EFCD1E,face:%(mono)s,back:#282828,eol,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_HEADER5, "fore:#EFCD1E,face:%(mono)s,back:#282828,eol,size:%(size)d" % faces)
-		self.edit.StyleSetSpec(stc.STC_MARKDOWN_HEADER6, "fore:#EFCD1E,face:%(mono)s,back:#282828,eol,size:%(size)d" % faces)
-
-		self.edit.SetSelBackground(True, "#384539")
-		self.edit.SetCaretForeground("WHITE")
-		self.edit.SetBackgroundColour("GRAY")
 
 
 	def onClose(self, event):
