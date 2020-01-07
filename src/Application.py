@@ -3,14 +3,10 @@ import os
 import sys
 import platform
 import subprocess
-import keyword
-import multiprocessing as mp
 
 import wx
 import wx.html2 as webview
 import wx.stc as stc
-from wxasync import AsyncBind, WxAsyncApp, StartCoroutine
-from asyncio.events import get_event_loop
 
 from Lexer import *
 from Styles import *
@@ -39,8 +35,6 @@ class Application(wx.Frame):
 			self.html = f"{os.getcwd()}/tmp.html"
 		else:
 			self.html = f"{os.getcwd()}/Notes/tmp.html"
-			f = open(self.html, "w")
-			f.close()
 
 		panel = wx.Panel(self)
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -95,10 +89,14 @@ class Application(wx.Frame):
 		w = self.GetSize()[0]
 		w = w - 7 * 100
 		self.status.SetStatusWidths([100, 100, 100, 100, w, 100, 100])
+
 		self.onKeyUp(wx.KeyEvent(wx.wxEVT_NULL))
+		tokens = lexer.lex(self.edit.GetValue())
+		parse(tokens, self.html, self.exeDir)
+
 		self.Bind(wx.EVT_SIZE, self.onSize)
 		self.Bind(wx.EVT_CLOSE, self.onClose)
-		self.Show()
+		self.Show()		
 
 
 	def onSize(self, event):
@@ -128,7 +126,8 @@ class Application(wx.Frame):
 
 	def onKeyUp(self, event):
 		#start = time.time()
-		tokens = lexer.regex_lex(self.edit.GetValue())
+		text = self.edit.GetValue()
+		tokens = lexer.regex_lex(text)
 		#end = time.time()
 		#print(f"reg lex: {end - start}")
 		#start = time.time()
@@ -192,6 +191,8 @@ class Application(wx.Frame):
 			except IOError:
 				fail(f"Cannot save current data in file '{self.currentAMD}'.")
 
+		tokens = lexer.lex(self.edit.GetValue())
+		parse(tokens, self.html, self.exeDir)
 		if self.currentAMD != None:
 			self.wv.LoadURL(self.html)
 		else:
@@ -212,6 +213,8 @@ class Application(wx.Frame):
 			self.currentAMD = pathname
 			self.edit.LoadFile(pathname)
 			self.onKeyUp(wx.KeyEvent(wx.wxEVT_NULL))
+			tokens = lexer.lex(self.edit.GetValue())
+			parse(tokens, self.html, self.exeDir)
 			self.wv.LoadURL(self.html)
 		except IOError:
 			wx.LogError("Cannot open the specified file '%s'." % pathname)
@@ -286,9 +289,8 @@ class Application(wx.Frame):
 
 if __name__ == '__main__':
 	start = time.time()
-	app = WxAsyncApp()
+	app = wx.App()
 	frm = Application(None)
 	end = time.time()
 	info(f"Application load time: {round(end - start, 2)}s")
-	loop = get_event_loop()
-	loop.run_until_complete(app.MainLoop())
+	app.MainLoop()
