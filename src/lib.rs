@@ -53,7 +53,7 @@ fn regex_lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
         }
     }
 
-    for mat in Regex::new(r"</[^>]+>").unwrap().find_iter(&text) {
+    for mat in Regex::new(r"<</[^>]+>").unwrap().find_iter(&text) {
         tokens.push(Token::new(14, mat.start(), mat.end(), String::from(mat.as_str())));
     }
     
