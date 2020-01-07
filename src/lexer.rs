@@ -344,29 +344,66 @@ pub fn match_backticks(text: &str, mut i: usize, mut line: usize, tokens: &mut V
         let mut types: Vec<String> = Vec::new();
         let mut declaration: Vec<String> = Vec::new();
 
+        let mut keywords_exists = false;
+        let mut flow_exists = false;
+        let mut types_exists = false;
+        let mut declaration_exists = false;
+
         if lang_path.exists() {
             let syntax_path = format!("Syntax/{}/keywords.txt", language.to_ascii_lowercase());
-            let keywords_file = fs::read_to_string(syntax_path).expect("couldnt find 'keywords' file");
-            for line in keywords_file.split('\n') {
-                keywords.push(String::from(line));
+            let keywords_file = match fs::read_to_string(syntax_path) {
+                Ok(val) => {
+                    keywords_exists = true;
+                    val
+                }
+                Err(_) => "error".to_string(),
+            };
+            if keywords_exists {
+                for line in keywords_file.split('\n') {
+                    keywords.push(String::from(line));
+                }
             }
-
+            
             let syntax_path = format!("Syntax/{}/flow.txt", language.to_ascii_lowercase());
-            let flow_file = fs::read_to_string(syntax_path).expect("couldnt find 'flow' file");
-            for line in flow_file.split('\n') {
-                flow.push(String::from(line));
+            let flow_file = match fs::read_to_string(syntax_path) {
+                Ok(val) => {
+                    flow_exists = true;
+                    val
+                }
+                Err(_) => "error".to_string(),
+            };
+            if flow_exists {
+                for line in flow_file.split('\n') {
+                    flow.push(String::from(line));
+                }
             }
 
             let syntax_path = format!("Syntax/{}/types.txt", language.to_ascii_lowercase());
-            let types_file = fs::read_to_string(syntax_path).expect("couldnt find 'types' file");
-            for line in types_file.split('\n') {
-                types.push(String::from(line));
+            let types_file = match fs::read_to_string(syntax_path) {
+                Ok(val) => {
+                    types_exists = true;
+                    val
+                }
+                Err(_) => "error".to_string(),
+            };
+            if types_exists {
+                for line in types_file.split('\n') {
+                    types.push(String::from(line));
+                }
             }
 
             let syntax_path = format!("Syntax/{}/declaration.txt", language.to_ascii_lowercase());
-            let declaration_file = fs::read_to_string(syntax_path).expect("couldnt find 'declaration' file");
-            for line in declaration_file.split('\n') {
-                declaration.push(String::from(line));
+            let declaration_file = match fs::read_to_string(syntax_path) {
+                Ok(val) => {
+                    declaration_exists = true;
+                    val
+                }
+                Err(_) => "error".to_string(),
+            };
+            if declaration_exists {
+                for line in declaration_file.split('\n') {
+                    declaration.push(String::from(line));
+                }
             }
         }
 
@@ -411,20 +448,22 @@ pub fn match_backticks(text: &str, mut i: usize, mut line: usize, tokens: &mut V
                                 tokens.push(Token::new(TokenType::CodeBlockKeyword as usize, i, i + k.len(), String::from(k)));
                                 i += k.len() - 1;
                                 key = true;
-                                for d in declaration.iter() {
-                                    if k == d {
-                                        i += 1;
-                                        while let Some(c) = text.get(i..=i) {
-                                            match c {
-                                                ":"|"("|"{"|"<" => {
-                                                    tokens.push(Token::new_single(TokenType::CodeBlockSymbol as usize, i, String::from(c)));
-                                                    break;
-                                                }
-                                                _ => tokens.push(Token::new_single(TokenType::CodeBlockClass as usize, i, String::from(c))),
-                                            }
+                                if declaration_exists {
+                                    for d in declaration.iter() {
+                                        if k == d {
                                             i += 1;
+                                            while let Some(c) = text.get(i..=i) {
+                                                match c {
+                                                    ":"|"("|"{"|"<" => {
+                                                        tokens.push(Token::new_single(TokenType::CodeBlockSymbol as usize, i, String::from(c)));
+                                                        break;
+                                                    }
+                                                    _ => tokens.push(Token::new_single(TokenType::CodeBlockClass as usize, i, String::from(c))),
+                                                }
+                                                i += 1;
+                                            }
+                                            break;
                                         }
-                                        break;
                                     }
                                 }
                                 break;
