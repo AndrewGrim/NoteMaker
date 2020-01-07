@@ -1,3 +1,6 @@
+use std::path::Path;
+use std::fs;
+
 use crate::debug;
 use crate::token::Token;
 use crate::token_type::TokenType;
@@ -296,21 +299,6 @@ pub fn match_blockquote(text: &str, mut i: usize, mut line: usize, tokens: &mut 
 }
 
 pub fn match_backticks(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
-    let keywords = [
-		String::from("as"), String::from("assert"), String::from("async"), String::from("await"), String::from("class"), String::from("continue"), String::from("def"), String::from("del"),  
-		String::from("from"), String::from("global"),  String::from("import"),  String::from("lambda"), String::from("nonlocal"), String::from("self"),
-    ];
-    
-	let flow = [
-		String::from("or"), String::from("pass"), String::from("raise"), String::from("return"), String::from("try"), String::from("while"), String::from("with"), String::from("yield"), String::from("if"), 
-		String::from("in"), String::from("is"), String::from("elif"), String::from("else"), String::from("except"), String::from("finally"), String::from("for"), String::from("and"), String::from("break"), 
-		String::from("not"), 
-    ];
-    
-	let types = [
-		String::from("None"), String::from("str"), String::from("int"), String::from("bool"), String::from("float"), String::from("False"), String::from("True"),
-    ];
-    
     if text.get(i - 1..i).expect("panic at pre block") == "p" && match text.get(i + 1..=i + 1) { Some(val) => val, None => return (i, line),} == "\n" {
         tokens.pop().expect("failed at removing 'p'");
         tokens.push(Token::new_single(TokenType::Format as usize, i - 1, String::from("f")));
@@ -341,13 +329,47 @@ pub fn match_backticks(text: &str, mut i: usize, mut line: usize, tokens: &mut V
         while let Some(c) = text.get(i..=i) {
             match c {
                 "\n" => {
-                    tokens.push(Token::new(TokenType::Format as usize, start, i, language));
+                    tokens.push(Token::new(TokenType::Format as usize, start, i, String::from(&language)));
                     break;
                 }
                 _ => language += c,
             }
             i += 1;
         }
+
+        let path = format!("Syntax/{}", language.to_ascii_lowercase());
+        let lang_path = Path::new(path.as_str());
+        let mut keywords: Vec<String> = Vec::new();
+        let mut flow: Vec<String> = Vec::new();
+        let mut types: Vec<String> = Vec::new();
+        let mut declaration: Vec<String> = Vec::new();
+
+        if lang_path.exists() {
+            let syntax_path = format!("Syntax/{}/keywords.txt", language.to_ascii_lowercase());
+            let keywords_file = fs::read_to_string(syntax_path).expect("couldnt find 'keywords' file");
+            for line in keywords_file.split('\n') {
+                keywords.push(String::from(line));
+            }
+
+            let syntax_path = format!("Syntax/{}/flow.txt", language.to_ascii_lowercase());
+            let flow_file = fs::read_to_string(syntax_path).expect("couldnt find 'flow' file");
+            for line in flow_file.split('\n') {
+                flow.push(String::from(line));
+            }
+
+            let syntax_path = format!("Syntax/{}/types.txt", language.to_ascii_lowercase());
+            let types_file = fs::read_to_string(syntax_path).expect("couldnt find 'types' file");
+            for line in types_file.split('\n') {
+                types.push(String::from(line));
+            }
+
+            let syntax_path = format!("Syntax/{}/declaration.txt", language.to_ascii_lowercase());
+            let declaration_file = fs::read_to_string(syntax_path).expect("couldnt find 'declaration' file");
+            for line in declaration_file.split('\n') {
+                declaration.push(String::from(line));
+            }
+        }
+
         while let Some(c) = text.get(i..=i) {
             match c {
                 "`" => {
@@ -381,62 +403,58 @@ pub fn match_backticks(text: &str, mut i: usize, mut line: usize, tokens: &mut V
                     }
                 }
                 _ => {
-                    let mut key = false;
-                    for k in keywords.iter() {
-                        if match_keyword(k, &text, i) {
-                            tokens.push(Token::new(TokenType::CodeBlockKeyword as usize, i, i + k.len(), String::from(k)));
-                            i += k.len() - 1;
-                            key = true;
-                            if k == "class" {
-                                i += 1;
-                                while let Some(c) = text.get(i..=i) {
-                                    match c {
-                                        ":"|"(" => {
-                                            tokens.push(Token::new_single(TokenType::CodeBlockSymbol as usize, i, String::from(c)));
-                                            break;
-                                        }
-                                        _ => tokens.push(Token::new_single(TokenType::CodeBlockClass as usize, i, String::from(c))),
-                                    }
-                                    i += 1;
-                                }
-                            } else if k == "def" {
-                                i += 1;
-                                while let Some(c) = text.get(i..=i) {
-                                    match c {
-                                        "(" => {
-                                            tokens.push(Token::new_single(TokenType::CodeBlockSymbol as usize, i, String::from(c)));
-                                            break;
-                                        }
-                                        _ => tokens.push(Token::new_single(TokenType::CodeBlockClass as usize, i, String::from(c))),
-                                    }
-                                    i += 1;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                    if !key {
-                        for f in flow.iter() {
-                            if match_keyword(f, &text, i) {
-                                tokens.push(Token::new(TokenType::CodeBlockFlow as usize, i, i + f.len(), String::from(f)));
-                                i += f.len() - 1;
+                    
+                    if lang_path.exists() {
+                        let mut key = false;
+                        for k in keywords.iter() {
+                            if match_keyword(k, &text, i) {
+                                tokens.push(Token::new(TokenType::CodeBlockKeyword as usize, i, i + k.len(), String::from(k)));
+                                i += k.len() - 1;
                                 key = true;
+                                for d in declaration.iter() {
+                                    if k == d {
+                                        i += 1;
+                                        while let Some(c) = text.get(i..=i) {
+                                            match c {
+                                                ":"|"("|"{"|"<" => {
+                                                    tokens.push(Token::new_single(TokenType::CodeBlockSymbol as usize, i, String::from(c)));
+                                                    break;
+                                                }
+                                                _ => tokens.push(Token::new_single(TokenType::CodeBlockClass as usize, i, String::from(c))),
+                                            }
+                                            i += 1;
+                                        }
+                                        break;
+                                    }
+                                }
                                 break;
                             }
                         }
                         if !key {
-                            for t in types.iter() {
-                                if match_keyword(t, &text, i) {
-                                    tokens.push(Token::new(TokenType::CodeBlockType as usize, i, i + t.len(), String::from(t)));
-                                    i += t.len() - 1;
+                            for f in flow.iter() {
+                                if match_keyword(f, &text, i) {
+                                    tokens.push(Token::new(TokenType::CodeBlockFlow as usize, i, i + f.len(), String::from(f)));
+                                    i += f.len() - 1;
                                     key = true;
                                     break;
                                 }
                             }
+                            if !key {
+                                for t in types.iter() {
+                                    if match_keyword(t, &text, i) {
+                                        tokens.push(Token::new(TokenType::CodeBlockType as usize, i, i + t.len(), String::from(t)));
+                                        i += t.len() - 1;
+                                        key = true;
+                                        break;
+                                    }
+                                }
+                            }
                         }
-                    }
 
-                    if !key {
+                        if !key {
+                            tokens.push(Token::new_single(TokenType::CodeBlock as usize, i, String::from(c)));
+                        }
+                    } else {
                         tokens.push(Token::new_single(TokenType::CodeBlock as usize, i, String::from(c)));
                     }
                 }

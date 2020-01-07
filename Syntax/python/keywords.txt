@@ -1,0 +1,13 @@
+as
+assert
+async
+await
+class
+def
+del
+from
+global
+import
+lambda
+nonlocal
+self
