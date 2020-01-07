@@ -271,3 +271,26 @@ pub fn match_keyword(keyword: &str, text: &str, i: usize) -> bool {
 
     matched
 }
+
+pub fn match_blockquote(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+    tokens.push(Token::new_single(TokenType::BlockquoteBegin as usize, i, String::from(">")));
+    tokens.push(Token::space(i + 1));
+    i += 2;
+
+    let start = i;
+    let mut blockquote_text: String = String::new();
+    while let Some(next_c) = text.get(i..=i) {
+        match next_c {
+            "\n" => {
+                tokens.push(Token::new(TokenType::BlockquoteText as usize, start, i, blockquote_text));
+                tokens.push(Token::new_single(TokenType::BlockquoteEnd as usize, i, String::from("\n")));
+                line += 1;
+                break;
+            }
+            _ => blockquote_text += next_c,
+        }
+        i += 1;
+    }
+
+    (i, line)
+}
