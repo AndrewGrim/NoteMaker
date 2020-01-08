@@ -2,6 +2,7 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 #![allow(unused_assignments)]
+#![allow(clippy::trivial_regex)]
 
 use std::fs;
 use std::path::Path;

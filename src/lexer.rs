@@ -366,19 +366,7 @@ fn match_codeblock(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<T
     tokens.push(Token::new_single(TokenType::Format as usize, i - 1, String::from("f")));
     tokens.push(Token::new_single(TokenType::CodeBlockBegin as usize, i, String::from("`")));
     i += 1;
-    let start = i;
-    let mut language = String::new(); // TODO use language to read in file with grammar?
-    while let Some(c) = text.get(i..=i) {
-        match c {
-            "\n" => {
-                tokens.push(Token::new(TokenType::Format as usize, start, i, String::from(&language)));
-                break;
-            }
-            _ => language += c,
-        }
-        i += 1;
-    }
-
+    let language = match_language_name(text, i, line, tokens);
     let path = format!("Syntax/{}", language.to_ascii_lowercase());
     let lang_path = Path::new(path.as_str());
     let mut keywords: Vec<String> = Vec::new();
@@ -514,6 +502,24 @@ fn match_codeblock(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<T
     }
 
     (i, line)
+}
+
+fn match_language_name(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>) -> String {
+    let mut language = String::new();
+    
+    let start = i;
+    while let Some(c) = text.get(i..=i) {
+        match c {
+            "\n" => {
+                tokens.push(Token::new(TokenType::Format as usize, start, i, String::from(&language)));
+                break;
+            }
+            _ => language += c,
+        }
+        i += 1;
+    }
+
+    language
 }
 
 pub fn read_syntax_file(language: String, file: &str, syntax: &mut Vec<String>) -> bool {
