@@ -22,12 +22,12 @@ pub fn match_heading(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec
 
     if h_count > 6 {
         debug::warn(format!("Line: {}, Index: {} -> Too many #! Heading only go up to 6!", line, i).as_str());
-        tokens.push(Token::new(TokenType::Error as usize, i - (h_count - 1) - 1, i, heading));
+        tokens.push(Token::new(TokenType::Heading as usize, i - (h_count - 1) - 1, i, h_count.to_string()));
 
         return (i, line);
     }
 
-    tokens.push(Token::new(TokenType::Heading as usize, i - (h_count - 1) - 1, i, heading,));
+    tokens.push(Token::new(TokenType::Heading as usize, i - (h_count - 1) - 1, i, h_count.to_string()));
     tokens.push(Token::space(i));
     i += 1;
 
@@ -38,7 +38,7 @@ pub fn match_heading(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec
             "\n" => {
                 line += 1;
                 tokens.push(Token::new(TokenType::HeadingText as usize, start, i, heading_text));
-                tokens.push(Token::empty(TokenType::HeadingEnd as usize));
+                tokens.push(Token::new(TokenType::HeadingEnd as usize, 0, 0, h_count.to_string()));
                 break;
             }
             _ => heading_text += c,
