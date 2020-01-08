@@ -516,7 +516,7 @@ fn match_codeblock(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<T
     (i, line)
 }
 
-fn read_syntax_file(language: String, file: &str, syntax: &mut Vec<String>) -> bool {
+pub fn read_syntax_file(language: String, file: &str, syntax: &mut Vec<String>) -> bool {
     let mut exists = false;
 
     let syntax_path = format!("Syntax/{}/{}", language, file);
@@ -525,7 +525,7 @@ fn read_syntax_file(language: String, file: &str, syntax: &mut Vec<String>) -> b
             exists = true;
             val
         }
-        Err(_) => "error".to_string(),
+        Err(e) => e.to_string(),
     };
 
     if exists {
@@ -737,6 +737,9 @@ pub fn match_comment(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec
         while next_c != "*" && match text.get(i + 1..=i + 1) { Some(val) => val, None => return (i, line),} != "/"{
             if next_c == "\n" {
                 line += 1;
+                if code {
+                    tokens.push(Token::new_single(TokenType::Newline as usize, i, String::from(next_c)));
+                }
             } else {
                 tokens.push(Token::new_single(token, i, String::from(next_c)));
             }
