@@ -4,6 +4,7 @@
 #![allow(unused_assignments)]
 
 use std::fs;
+use std::path::Path;
 
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
@@ -190,74 +191,108 @@ fn regex_lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
 }
 
 fn tokenize_codeblock(text: &str, tokens: &mut Vec<Token>) {
-    let keywords = [
-		String::from("as"), String::from("assert"), String::from("async"), String::from("await"), String::from("class"), String::from("continue"), String::from("def"), String::from("del"),  
-		String::from("from"), String::from("global"),  String::from("import"),  String::from("lambda"), String::from("nonlocal"), String::from("self"),
-    ];
-
-    let flow = [
-		String::from("or"), String::from("pass"), String::from("raise"), String::from("return"), String::from("try"), String::from("while"), String::from("with"), String::from("yield"), String::from("if"), 
-		String::from("in"), String::from("is"), String::from("elif"), String::from("else"), String::from("except"), String::from("finally"), String::from("for"), String::from("and"), String::from("break"), 
-		String::from("not"), 
-    ];
-    
-	let types = [
-		String::from("None"), String::from("str"), String::from("int"), String::from("bool"), String::from("float"), String::from("False"), String::from("True"),
-    ];
-    
-    let declaration = [String::from("class"), String::from("def")];
-
     for o_mat in Regex::new(r"f`[^`]+`").unwrap().find_iter(&text) {
-        for mat in Regex::new(r".").unwrap().find_iter(o_mat.as_str()) {
-            tokens.push(Token::new_single(19, mat.start() + o_mat.start(), String::from(mat.as_str())));
-        }
-
-        tokens.push(Token::new_single(16, o_mat.start(), String::from("f")));
-        tokens.push(Token::new_single(4, o_mat.start() + 1, String::from("`")));
-        tokens.push(Token::new_single(4, o_mat.end() - 1, String::from("`")));
-
-        for key in keywords.iter() {
-            for mat in Regex::new((r"\b".to_string() + key + r"\b").as_str()).unwrap().find_iter(o_mat.as_str()) {
-                tokens.push(Token::new(17, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+        for mat in Regex::new(r"f`[^\n]+\n").unwrap().find_iter(o_mat.as_str()) {
+            for mat in Regex::new(r".").unwrap().find_iter(o_mat.as_str()) {
+                tokens.push(Token::new_single(19, mat.start() + o_mat.start(), String::from(mat.as_str())));
             }
-        }
 
-        for f in flow.iter() {
-            for mat in Regex::new((r"\b".to_string() + f + r"\b").as_str()).unwrap().find_iter(o_mat.as_str()) {
-                tokens.push(Token::new(25, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+            tokens.push(Token::new_single(16, o_mat.start(), String::from("f")));
+            tokens.push(Token::new_single(4, o_mat.start() + 1, String::from("`")));
+            tokens.push(Token::new_single(4, o_mat.end() - 1, String::from("`")));
+            tokens.push(Token::new(16, mat.start() + o_mat.start() + 1, mat.end() + o_mat.start(), String::from(mat.as_str())));
+
+            let language = String::from(mat.as_str().get(2..mat.as_str().len() - 1).expect("failed to get language slice"));
+            let path = format!("Syntax/{}", language.to_ascii_lowercase());
+            let lang_path = Path::new(path.as_str());
+            let mut keywords: Vec<String> = Vec::new();
+            let mut flow: Vec<String> = Vec::new();
+            let mut types: Vec<String> = Vec::new();
+            let mut declaration: Vec<String> = Vec::new();
+
+            let keywords_exists = {
+                if lang_path.exists() {
+                    println!("runs");
+                    read_syntax_file(language.to_ascii_lowercase(), "keywords.txt", &mut keywords)
+                } else {
+                    false
+                }
+            };
+
+            let flow_exists = {
+                if lang_path.exists() {
+                    read_syntax_file(language.to_ascii_lowercase(), "flow.txt", &mut flow)
+                } else {
+                    false
+                }
+            };
+            let types_exists = {
+                if lang_path.exists() {
+                    read_syntax_file(language.to_ascii_lowercase(), "types.txt", &mut types)
+                } else {
+                    false
+                }
+            };
+            let declaration_exists = {
+                if lang_path.exists() {
+                    read_syntax_file(language.to_ascii_lowercase(), "declaration.txt", &mut declaration)
+                } else {
+                    false
+                }
+            };
+
+            if keywords_exists {
+                for key in keywords.iter() {
+                    for mat in Regex::new((r"\b".to_string() + key + r"\b").as_str()).unwrap().find_iter(o_mat.as_str()) {
+                        tokens.push(Token::new(17, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+                    }
+                }
             }
-        }
 
-        for t in types.iter() {
-            for mat in Regex::new((r"\b".to_string() + t + r"\b").as_str()).unwrap().find_iter(o_mat.as_str()) {
-                tokens.push(Token::new(24, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+            if flow_exists {
+                for f in flow.iter() {
+                    for mat in Regex::new((r"\b".to_string() + f + r"\b").as_str()).unwrap().find_iter(o_mat.as_str()) {
+                        tokens.push(Token::new(25, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+                    }
+                }
             }
-        }
 
-        for mat in Regex::new(r"\d").unwrap().find_iter(o_mat.as_str()) {
-            tokens.push(Token::new(26, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
-        }
-
-        for mat in Regex::new(r"[<>\\/*:;!?\[\]>\(\)\-~_,.=]").unwrap().find_iter(o_mat.as_str()) {
-            tokens.push(Token::new(18, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
-        }
-
-        for d in declaration.iter() {
-            for mat in Regex::new((r"\b".to_string() + d + r"\b[^({:<]+[\({:<]").as_str()).unwrap().find_iter(o_mat.as_str()) {
-                tokens.push(Token::new(22, mat.start() + o_mat.start() + d.len(), mat.end() + o_mat.start() - 1, String::from(mat.as_str())));
+            if types_exists {
+                for t in types.iter() {
+                    for mat in Regex::new((r"\b".to_string() + t + r"\b").as_str()).unwrap().find_iter(o_mat.as_str()) {
+                        tokens.push(Token::new(24, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+                    }
+                }
             }
-        }
+            
+            if declaration_exists {
+                for d in declaration.iter() {
+                    for mat in Regex::new((r"\b".to_string() + d + r"\b[^({:<]+[\({:<]").as_str()).unwrap().find_iter(o_mat.as_str()) {
+                        tokens.push(Token::new(22, mat.start() + o_mat.start() + d.len(), mat.end() + o_mat.start() - 1, String::from(mat.as_str())));
+                    }
+                }
+            }
 
-        for mat in Regex::new(r#"['"][^"']+["']"#).unwrap().find_iter(o_mat.as_str()) {
-            tokens.push(Token::new(20, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
-        }
+            for mat in Regex::new(r"\d").unwrap().find_iter(o_mat.as_str()) {
+                tokens.push(Token::new(26, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+            }
 
-        for mat in Regex::new(r"\s//[^\n]+\s").unwrap().find_iter(o_mat.as_str()) {
-            tokens.push(Token::new(21, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
-        }
+            for mat in Regex::new(r"[<>\\/*:;!?\[\]>\(\)\-~_,.=]").unwrap().find_iter(o_mat.as_str()) {
+                tokens.push(Token::new(18, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+            }
 
-        for mat in Regex::new(r"/\*[^*]+\*/").unwrap().find_iter(o_mat.as_str()) {
-            tokens.push(Token::new(21, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+
+            for mat in Regex::new(r#"['"][^"']+["']"#).unwrap().find_iter(o_mat.as_str()) {
+                tokens.push(Token::new(20, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+            }
+
+            for mat in Regex::new(r"\s//[^\n]+\s").unwrap().find_iter(o_mat.as_str()) {
+                tokens.push(Token::new(21, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+            }
+
+            for mat in Regex::new(r"/\*[^*]+\*/").unwrap().find_iter(o_mat.as_str()) {
+                tokens.push(Token::new(21, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+            }
         }
     }
 }

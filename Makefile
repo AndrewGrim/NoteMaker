@@ -1,6 +1,6 @@
-debug: lexer
-	python src/Application.py "Notes/test.amd"
 release: lexer.release
+	python src/Application.py "Notes/test.amd"
+debug: lexer
 	python src/Application.py "Notes/test.amd"
 test:
 	cargo test
