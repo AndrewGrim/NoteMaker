@@ -366,6 +366,7 @@ fn match_codeblock(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<T
     tokens.push(Token::new_single(TokenType::CodeBlockBegin as usize, i, String::from("`")));
     i += 1;
     let language = match_language_name(text, i, line, tokens);
+    i += language.len();
     let path = format!("Syntax/{}", language.to_ascii_lowercase());
     let lang_path = Path::new(path.as_str());
     let mut keywords: Vec<String> = Vec::new();
@@ -742,7 +743,7 @@ pub fn match_comment(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec
         while next_c != "*" && match text.get(i + 1..=i + 1) { Some(val) => val, None => return (i, line),} != "/"{
             if next_c == "\n" {
                 line += 1;
-                if code {
+                if code && token == TokenType::CodeBlockComment as usize {
                     tokens.push(Token::new_single(TokenType::Newline as usize, i, String::from(next_c)));
                 }
             } else {

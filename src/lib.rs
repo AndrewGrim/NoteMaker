@@ -185,6 +185,10 @@ fn regex_lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
         tokens.push(Token::new(27, mat.start(), mat.end(), String::from(mat.as_str())));
     }
 
+    for mat in Regex::new(r"/\*[^*]+\*/").unwrap().find_iter(&text) {
+        tokens.push(Token::new(27, mat.start(), mat.end(), String::from(mat.as_str())));
+    }
+
     tokenize_codeblock(&text, &mut tokens);
     
 
