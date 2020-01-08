@@ -198,6 +198,7 @@ class Application(wx.Frame):
 			end = time.time()
 			print(f"parsing: {end - start}")
 			self.onReload(None)
+			self.edit.SetFocus()
 
 
 	def onOpen(self, event):
@@ -222,7 +223,6 @@ class Application(wx.Frame):
 	
 	def onReload(self, event):
 		self.wv.Reload()
-		self.edit.SetFocus()
 
 
 	def onShowHidden(self, event):
