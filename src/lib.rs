@@ -113,7 +113,7 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                 pos.update(match_html(&text, pos.index, pos.line, &mut tokens));
             }
             "/" => {
-                pos.update(match_comment(&text, pos.index, pos.line, &mut tokens));
+                pos.update(match_comment(&text, pos.index, pos.line, &mut tokens, false));
             }
             _ => tokens.push(Token::new_single(TokenType::Text as usize, pos.index, String::from(c))),
         }
@@ -126,23 +126,6 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
 
 #[pyfunction]
 fn regex_lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
-    let keywords = [
-		String::from("as"), String::from("assert"), String::from("async"), String::from("await"), String::from("class"), String::from("continue"), String::from("def"), String::from("del"),  
-		String::from("from"), String::from("global"),  String::from("import"),  String::from("lambda"), String::from("nonlocal"), String::from("self"),
-    ];
-
-    let flow = [
-		String::from("or"), String::from("pass"), String::from("raise"), String::from("return"), String::from("try"), String::from("while"), String::from("with"), String::from("yield"), String::from("if"), 
-		String::from("in"), String::from("is"), String::from("elif"), String::from("else"), String::from("except"), String::from("finally"), String::from("for"), String::from("and"), String::from("break"), 
-		String::from("not"), 
-    ];
-    
-	let types = [
-		String::from("None"), String::from("str"), String::from("int"), String::from("bool"), String::from("float"), String::from("False"), String::from("True"),
-    ];
-    
-    let declaration = [String::from("class"), String::from("def")];
-
     let mut tokens: Vec<Token> = Vec::new();
 
     for mat in Regex::new(r"#+").unwrap().find_iter(&text) {
@@ -200,6 +183,30 @@ fn regex_lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
         tokens.push(Token::new(27, mat.start(), mat.end(), String::from(mat.as_str())));
     }
 
+    tokenize_codeblock(&text, &mut tokens);
+    
+
+    Ok(tokens)
+}
+
+fn tokenize_codeblock(text: &str, tokens: &mut Vec<Token>) {
+    let keywords = [
+		String::from("as"), String::from("assert"), String::from("async"), String::from("await"), String::from("class"), String::from("continue"), String::from("def"), String::from("del"),  
+		String::from("from"), String::from("global"),  String::from("import"),  String::from("lambda"), String::from("nonlocal"), String::from("self"),
+    ];
+
+    let flow = [
+		String::from("or"), String::from("pass"), String::from("raise"), String::from("return"), String::from("try"), String::from("while"), String::from("with"), String::from("yield"), String::from("if"), 
+		String::from("in"), String::from("is"), String::from("elif"), String::from("else"), String::from("except"), String::from("finally"), String::from("for"), String::from("and"), String::from("break"), 
+		String::from("not"), 
+    ];
+    
+	let types = [
+		String::from("None"), String::from("str"), String::from("int"), String::from("bool"), String::from("float"), String::from("False"), String::from("True"),
+    ];
+    
+    let declaration = [String::from("class"), String::from("def")];
+
     for o_mat in Regex::new(r"f`[^`]+`").unwrap().find_iter(&text) {
         for mat in Regex::new(r".").unwrap().find_iter(o_mat.as_str()) {
             tokens.push(Token::new_single(19, mat.start() + o_mat.start(), String::from(mat.as_str())));
@@ -244,9 +251,15 @@ fn regex_lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
         for mat in Regex::new(r#"['"][^"']+["']"#).unwrap().find_iter(o_mat.as_str()) {
             tokens.push(Token::new(20, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
         }
-    }
 
-    Ok(tokens)
+        for mat in Regex::new(r"\s//[^\n]+\s").unwrap().find_iter(o_mat.as_str()) {
+            tokens.push(Token::new(21, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+        }
+
+        for mat in Regex::new(r"/\*[^*]+\*/").unwrap().find_iter(o_mat.as_str()) {
+            tokens.push(Token::new(21, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
+        }
+    }
 }
 
 #[pymodule]

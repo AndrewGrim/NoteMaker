@@ -425,7 +425,7 @@ fn match_codeblock(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<T
             "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9" =>  {
                 tokens.push(Token::new_single(TokenType::CodeBlockDigit as usize, i, String::from(c)));
             }
-            ";"|":"|"("|")"|"{"|"}"|"["|"]"|"."|","|"+"|"-"|"*"|"/"|"<"|">"|"\\"|"&"|"="|"!"|"%" =>  {
+            ";"|":"|"("|")"|"{"|"}"|"["|"]"|"."|","|"+"|"-"|"*"|"\\"|"<"|">"|"&"|"="|"!"|"%" =>  {
                 tokens.push(Token::new_single(TokenType::CodeBlockSymbol as usize, i, String::from(c)));
             }
             "\""|"'" => {
@@ -446,6 +446,11 @@ fn match_codeblock(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<T
                     }
                     i += 1;
                 }
+            }
+            "/" => {
+                let result = match_comment(&text, i, line, tokens, true);
+                i = result.0;
+                line = result.1;
             }
             _ => {
                 if lang_path.exists() {
@@ -705,18 +710,41 @@ pub fn match_html(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<To
     (i, line)
 }
 
-pub fn match_comment(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+pub fn match_comment(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<Token>, code: bool) -> (usize, usize) {
+    let token = {
+        if code {
+            TokenType::CodeBlockComment as usize
+        } else {
+            TokenType::Comment as usize
+        }
+    };
+
     i += 1;
     let mut next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
-    if let "/" = next_c {
-        tokens.push(Token::new_single(TokenType::Comment as usize, i - 1, String::from(next_c)));
-        tokens.push(Token::new_single(TokenType::Comment as usize, i, String::from(next_c)));
+    if next_c == "/" {
+        tokens.push(Token::new_single(token, i - 1, String::from(next_c)));
+        tokens.push(Token::new_single(token, i, String::from(next_c)));
         while next_c != "\n" {
             i += 1;
             next_c = match text.get(i..=i) { Some(val) => val, None => break,};
-            tokens.push(Token::new_single(TokenType::Comment as usize, i, String::from(next_c)));
+            tokens.push(Token::new_single(token, i, String::from(next_c)));
         }
-    }  
+    } else if next_c == "*" {
+        tokens.push(Token::new_single(token, i - 1, String::from("/")));
+        tokens.push(Token::new_single(token, i, String::from(next_c)));
+        i += 1;
+        next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
+        while next_c != "*" && match text.get(i + 1..=i + 1) { Some(val) => val, None => return (i, line),} != "/"{
+            if next_c == "\n" {
+                line += 1;
+            } else {
+                tokens.push(Token::new_single(token, i, String::from(next_c)));
+            }
+            i += 1;
+            next_c = match text.get(i..=i) { Some(val) => val, None => break,};
+        }
+        tokens.push(Token::new_single(token, i + 1, String::from("/")));
+    }
 
     (i, line)
 }
