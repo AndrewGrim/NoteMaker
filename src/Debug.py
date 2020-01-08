@@ -103,3 +103,11 @@ def debug(variable: object, name: str = "None", message: str = "None") -> None:
 	Length: {length}
 	Content: {content}
 	""".strip("\n"))
+
+
+def log(input, file_path = "output.log", file_mode = "w"):
+	f = open(file_path, file_mode)
+	try:
+		f.write(input)
+	except Exception as e:
+		print(e)
