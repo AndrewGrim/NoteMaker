@@ -213,7 +213,6 @@ fn tokenize_codeblock(text: &str, tokens: &mut Vec<Token>) {
 
             let keywords_exists = {
                 if lang_path.exists() {
-                    println!("runs");
                     read_syntax_file(language.to_ascii_lowercase(), "keywords.txt", &mut keywords)
                 } else {
                     false

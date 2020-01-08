@@ -155,7 +155,6 @@ pub fn match_underline(text: &str, mut i: usize, line: usize, tokens: &mut Vec<T
 }
 
 pub fn match_list(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>) -> (usize, usize) { 
-    // TODO change "1" to check for any digit
     let mut l_count: usize = 0;
     let mut list_index: Vec<usize> = Vec::new();
     let mut list_item: bool = true;
@@ -168,7 +167,7 @@ pub fn match_list(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>
             tokens.push(Token::empty(TokenType::ListItemBegin as usize));
             list_index.push(TokenType::UnorderedListEnd as usize);
         }
-        "1" => {
+        "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9" => {
             tokens.push(Token::new(TokenType::OrderedListBegin as usize, i - 2, i + 1, String::from("::1")));
             tokens.push(Token::empty(TokenType::ListItemBegin as usize));
             list_index.push(TokenType::OrderedListEnd as usize);
@@ -204,7 +203,7 @@ pub fn match_list(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>
                     tokens.push(Token::empty(TokenType::ListItemBegin as usize));
                     list_index.push(TokenType::UnorderedListEnd as usize);
                 }
-                "1" => {
+                "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9" => {
                     tokens.push(Token::new(TokenType::OrderedListBegin as usize, i - 2, i + 1, String::from("::1")));
                     tokens.push(Token::empty(TokenType::ListItemBegin as usize));
                     list_index.push(TokenType::OrderedListEnd as usize);
@@ -220,7 +219,7 @@ pub fn match_list(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>
             i += 1;
             c = match text.get(i..=i) { Some(val) => val, None => break,};
 
-        } else if c == "*" || c == "1" && !list_item {
+        } else if ["*", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].contains(&c) && !list_item {
             tokens.push(Token::new_single(TokenType::ListItemBegin as usize, i, String::from(c)));
             list_item = true;
             i += 1;
