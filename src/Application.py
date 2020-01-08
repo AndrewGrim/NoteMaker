@@ -193,7 +193,10 @@ class Application(wx.Frame):
 
 		if self.currentAMD != None:
 			tokens = lexer.lex(self.edit.GetValue())
+			start = time.time()
 			parse(tokens, self.html, self.exeDir)
+			end = time.time()
+			print(f"parsing: {end - start}")
 			self.onReload(None)
 
 

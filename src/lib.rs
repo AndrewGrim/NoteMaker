@@ -243,181 +243,24 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                 line = result.1;
             }
             "!" => {
-                let mut next_c = match text.get(i + 1..=i + 1) { Some(val) => val, None => break,};
-                if next_c == "[" {
-                    tokens.push(Token::new_double(TokenType::ImageAltBegin as usize, i, String::from("![")));
-                    i += 2;
-                    let start: usize = i;
-                    let mut alt_text: String = String::new();
-                    while let Some(c) = text.get(i..=i) {
-                        match c {
-                            "]" => {
-                                tokens.push(Token::new(TokenType::ImageAltText as usize, start, i, alt_text));
-                                tokens.push(Token::new_single(TokenType::ImageAltEnd as usize, i, String::from("]")));
-                                i += 1;
-                                break;
-                            }
-                            "\n" => {
-                                debug::warn(format!("Line: {} Index: {} -> Couldn't find closing ']' before a newline!", line, i).as_str());
-                                tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(c)));
-                                line += 1;
-                                break;
-                            }
-                            _ => alt_text += c,
-                        }
-                        i += 1;
-                    }
-                    next_c = match text.get(i..=i) { Some(val) => val, None => break,};
-                    match next_c {
-                        "(" => {
-                            tokens.push(Token::new_single(TokenType::ImagePathBegin as usize, i, String::from("(")));
-                            i += 1;
-                            let start: usize = i;
-                            let mut image_path: String = String::new();
-                            while let Some(c) = text.get(i..=i) {
-                                match c {
-                                    ")" => {
-                                        tokens.push(Token::new(TokenType::ImagePathText as usize, start, i, image_path));
-                                        tokens.push(Token::new_single(TokenType::ImagePathEnd as usize, i, String::from(")")));
-                                        i += 1;
-                                        break;
-                                    }
-                                    "\n" => {
-                                        debug::warn(format!("Line: {} Index: {} -> Couldn't find closing ']' before a newline!", line, i).as_str());
-                                        tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(c)));
-                                        line += 1;
-                                        break;
-                                    }
-                                    _ => image_path += c,
-                                }
-                                i += 1;
-                            }
-                        }
-                        _ => {
-                            debug::warn(format!("Line: {} Index: {} -> Incorrect image declaration! Expected '(' found '{}'", line, i, next_c).as_str());
-                            tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(next_c)));
-                        }
-                    }
-                }
+                let result = match_image(&text, i, line, &mut tokens);
+                i = result.0;
+                line = result.1;
             }
             "?" => {
-                let mut next_c = match text.get(i + 1..=i + 1) { Some(val) => val, None => break,};
-                if next_c == "[" {
-                    tokens.push(Token::new_double(TokenType::LinkAltBegin as usize, i, String::from("![")));
-                    i += 2;
-                    let start: usize = i;
-                    let mut alt_text: String = String::new();
-                    while let Some(c) = text.get(i..=i) {
-                        match c {
-                            "]" => {
-                                tokens.push(Token::new(TokenType::LinkAltText as usize, start, i, alt_text));
-                                tokens.push(Token::new_single(TokenType::LinkAltEnd as usize, i, String::from("]")));
-                                i += 1;
-                                break;
-                            }
-                            "\n" => {
-                                debug::warn(format!("Line: {} Index: {} -> Couldn't find closing ']' before a newline!", line, i).as_str());
-                                tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(c)));
-                                line += 1;
-                                break;
-                            }
-                            _ => alt_text += c,
-                        }
-                        i += 1;
-                    }
-                    next_c = match text.get(i..=i) { Some(val) => val, None => break,};
-                    match next_c {
-                        "(" => {
-                            tokens.push(Token::new_single(TokenType::LinkPathBegin as usize, i, String::from("(")));
-                            i += 1;
-                            let start: usize = i;
-                            let mut link_path: String = String::new();
-                            while let Some(c) = text.get(i..=i) {
-                                match c {
-                                    ")" => {
-                                        tokens.push(Token::new(TokenType::LinkPathText as usize, start, i, link_path));
-                                        tokens.push(Token::new_single(TokenType::LinkPathEnd as usize, i, String::from(")")));
-                                        i += 1;
-                                        break;
-                                    }
-                                    "\n" => {
-                                        debug::warn(format!("Line: {} Index: {} -> Couldn't find closing ']' before a newline!", line, i).as_str());
-                                        tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(c)));
-                                        line += 1;
-                                        break;
-                                    }
-                                    _ => link_path += c,
-                                }
-                                i += 1;
-                            }
-                        }
-                        _ => {
-                            debug::warn(format!("Line: {} Index: {} -> Incorrect link declaration! Expected '(' found '{}'", line, i, next_c).as_str());
-                            tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(next_c)));
-                        }
-                    }
-                }
+                let result = match_link(&text, i, line, &mut tokens);
+                i = result.0;
+                line = result.1;
             }
             "<" => {
-                let mut html: bool = false;
-                if match text.get(i + 1..=i + 1) { Some(val) => val, None => break,} == "<" {
-                    tokens.push(Token::new_double(TokenType::HtmlBegin as usize, i, String::from("<<")));
-                    i += 1;
-                    html = true;
-                } else if match text.get(i + 1..=i + 1) { Some(val) => val, None => break,} == "/" {
-                    tokens.push(Token::new_double(TokenType::HtmlBegin as usize, i, String::from("</")));
-                    i += 1;
-                    html = true;
-                }
-
-                if html {
-                    i += 1;
-                    let start: usize = i;
-                    while let Some(c) = text.get(i..=i) {
-                        match c {
-                            ">" => {
-                                tokens.push(Token::new_single(TokenType::HtmlEnd as usize, i, String::from(">")));
-                                break;
-                            }
-                            "\"" => {
-                                tokens.push(Token::new_single(TokenType::HtmlAttributeText as usize, i, String::from("\"")));
-                                i += 1;
-                                while let Some(c) = text.get(i..=i) {
-                                    match c {
-                                        "\"" => {
-                                            tokens.push(Token::new_single(TokenType::HtmlAttributeText as usize, i, String::from("\"")));
-                                            break;
-                                        }
-                                        "\n" => {
-                                            debug::warn(format!("Line: {} Index: {} -> Couldn't find closing '\"' before a newline!", line, i).as_str());
-                                            tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(c)));
-                                            line += 1;
-                                            i += 1;
-                                            break;
-                                        }
-                                        _ => tokens.push(Token::new_single(TokenType::HtmlAttributeText as usize, i, String::from(c))),
-                                    }
-                                    i += 1;
-                                }
-                            }
-                            _ => tokens.push(Token::new_single(TokenType::HtmlText as usize, i, String::from(c))),
-                        }
-                        i += 1;
-                    }
-                }
+                let result = match_html(&text, i, line, &mut tokens);
+                i = result.0;
+                line = result.1;
             }
             "/" => {
-                i += 1;
-                let mut next_c = match text.get(i..=i) { Some(val) => val, None => break,};
-                if let "/" = next_c {
-                    tokens.push(Token::new_single(TokenType::Comment as usize, i - 1, String::from(next_c)));
-                    tokens.push(Token::new_single(TokenType::Comment as usize, i, String::from(next_c)));
-                    while next_c != "\n" {
-                        i += 1;
-                        next_c = match text.get(i..=i) { Some(val) => val, None => break,};
-                        tokens.push(Token::new_single(TokenType::Comment as usize, i, String::from(next_c)));
-                    }
-                }   
+                let result = match_comment(&text, i, line, &mut tokens);
+                i = result.0;
+                line = result.1;
             }
             _ => tokens.push(Token::new_single(TokenType::Text as usize, i, String::from(c))),
         }

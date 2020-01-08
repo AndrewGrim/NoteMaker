@@ -300,224 +300,423 @@ pub fn match_blockquote(text: &str, mut i: usize, mut line: usize, tokens: &mut 
 
 pub fn match_backticks(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
     if text.get(i - 1..i).expect("panic at pre block") == "p" && match text.get(i + 1..=i + 1) { Some(val) => val, None => return (i, line),} == "\n" {
-        tokens.pop().expect("failed at removing 'p'");
-        tokens.push(Token::new_single(TokenType::Format as usize, i - 1, String::from("f")));
-        tokens.push(Token::new_single(TokenType::FormatBlockBegin as usize, i, String::from("`")));
-        i += 1;
-        while let Some(c) = text.get(i..=i) {
-            match c {
-                "`" => {
-                    tokens.push(Token::new_single(TokenType::FormatBlockEnd as usize, i, String::from("`")));
-                    i += 1; // to step over the following newline
-                    break;
-                }
-                "\n" =>  {
-                    tokens.push(Token::new_single(TokenType::FormatBlockText as usize, i, String::from(c)));
-                    line += 1;
-                }
-                _ => tokens.push(Token::new_single(TokenType::FormatBlockText as usize, i, String::from(c))),
-            }
-            i += 1;
-        }
+        let result = match_preblock(text, i, line, tokens);
+        i = result.0;
+        line = result.1;
     } else if text.get(i - 1..i).expect("panic at format block") == "f" && match text.get(i + 1..=i + 1) { Some(val) => val, None => return (i, line),} != "\n" {
-        tokens.pop().expect("failed at removing 'f'");
-        tokens.push(Token::new_single(TokenType::Format as usize, i - 1, String::from("f")));
-        tokens.push(Token::new_single(TokenType::CodeBlockBegin as usize, i, String::from("`")));
+        let result = match_codeblock(text, i, line, tokens);
+        i = result.0;
+        line = result.1;
+    } else {
+        let result = match_code(text, i, line, tokens);
+        i = result.0;
+        line = result.1;
+    }
+
+    (i, line)
+}
+
+fn match_preblock(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+    tokens.pop().expect("failed at removing 'p'");
+    tokens.push(Token::new_single(TokenType::Format as usize, i - 1, String::from("f")));
+    tokens.push(Token::new_single(TokenType::FormatBlockBegin as usize, i, String::from("`")));
+    i += 1;
+    while let Some(c) = text.get(i..=i) {
+        match c {
+            "`" => {
+                tokens.push(Token::new_single(TokenType::FormatBlockEnd as usize, i, String::from("`")));
+                i += 1; // to step over the following newline
+                break;
+            }
+            "\n" =>  {
+                tokens.push(Token::new_single(TokenType::FormatBlockText as usize, i, String::from(c)));
+                line += 1;
+            }
+            _ => tokens.push(Token::new_single(TokenType::FormatBlockText as usize, i, String::from(c))),
+        }
         i += 1;
-        let start = i;
-        let mut language = String::new(); // TODO use language to read in file with grammar?
-        while let Some(c) = text.get(i..=i) {
-            match c {
-                "\n" => {
-                    tokens.push(Token::new(TokenType::Format as usize, start, i, String::from(&language)));
-                    break;
-                }
-                _ => language += c,
+    }
+
+    (i, line)
+}
+
+fn match_code(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+    tokens.push(Token::new_single(TokenType::CodeBegin as usize, i, String::from("`")));
+    let start = i;
+    let mut code_text: String = String::new();
+    i += 1;
+    while let Some(next_c) = text.get(i..=i) {
+        match next_c {
+            "`" => {
+                tokens.push(Token::new(TokenType::Code as usize, start, i, code_text));
+                tokens.push(Token::new_single(TokenType::CodeEnd as usize, i, String::from("`")));
+                break;
             }
-            i += 1;
+            "\n" => line += 1, // this should prob break since its now goint to keep the formatting anyway
+            _ => code_text += next_c,
         }
+        i += 1;
+    }
 
-        let path = format!("Syntax/{}", language.to_ascii_lowercase());
-        let lang_path = Path::new(path.as_str());
-        let mut keywords: Vec<String> = Vec::new();
-        let mut flow: Vec<String> = Vec::new();
-        let mut types: Vec<String> = Vec::new();
-        let mut declaration: Vec<String> = Vec::new();
+    (i, line)
+}
 
-        let mut keywords_exists = false;
-        let mut flow_exists = false;
-        let mut types_exists = false;
-        let mut declaration_exists = false;
+fn match_codeblock(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+    tokens.pop().expect("failed at removing 'f'");
+    tokens.push(Token::new_single(TokenType::Format as usize, i - 1, String::from("f")));
+    tokens.push(Token::new_single(TokenType::CodeBlockBegin as usize, i, String::from("`")));
+    i += 1;
+    let start = i;
+    let mut language = String::new(); // TODO use language to read in file with grammar?
+    while let Some(c) = text.get(i..=i) {
+        match c {
+            "\n" => {
+                tokens.push(Token::new(TokenType::Format as usize, start, i, String::from(&language)));
+                break;
+            }
+            _ => language += c,
+        }
+        i += 1;
+    }
 
+    let path = format!("Syntax/{}", language.to_ascii_lowercase());
+    let lang_path = Path::new(path.as_str());
+    let mut keywords: Vec<String> = Vec::new();
+    let mut flow: Vec<String> = Vec::new();
+    let mut types: Vec<String> = Vec::new();
+    let mut declaration: Vec<String> = Vec::new();
+
+    let keywords_exists = {
         if lang_path.exists() {
-            let syntax_path = format!("Syntax/{}/keywords.txt", language.to_ascii_lowercase());
-            let keywords_file = match fs::read_to_string(syntax_path) {
-                Ok(val) => {
-                    keywords_exists = true;
-                    val
-                }
-                Err(_) => "error".to_string(),
-            };
-            if keywords_exists {
-                for line in keywords_file.split('\n') {
-                    keywords.push(String::from(line));
-                }
-            }
-            
-            let syntax_path = format!("Syntax/{}/flow.txt", language.to_ascii_lowercase());
-            let flow_file = match fs::read_to_string(syntax_path) {
-                Ok(val) => {
-                    flow_exists = true;
-                    val
-                }
-                Err(_) => "error".to_string(),
-            };
-            if flow_exists {
-                for line in flow_file.split('\n') {
-                    flow.push(String::from(line));
-                }
-            }
-
-            let syntax_path = format!("Syntax/{}/types.txt", language.to_ascii_lowercase());
-            let types_file = match fs::read_to_string(syntax_path) {
-                Ok(val) => {
-                    types_exists = true;
-                    val
-                }
-                Err(_) => "error".to_string(),
-            };
-            if types_exists {
-                for line in types_file.split('\n') {
-                    types.push(String::from(line));
-                }
-            }
-
-            let syntax_path = format!("Syntax/{}/declaration.txt", language.to_ascii_lowercase());
-            let declaration_file = match fs::read_to_string(syntax_path) {
-                Ok(val) => {
-                    declaration_exists = true;
-                    val
-                }
-                Err(_) => "error".to_string(),
-            };
-            if declaration_exists {
-                for line in declaration_file.split('\n') {
-                    declaration.push(String::from(line));
-                }
-            }
+            read_syntax_file(language.to_ascii_lowercase(), "keywords.txt", &mut keywords)
+        } else {
+            false
         }
+    };
+    let flow_exists = {
+        if lang_path.exists() {
+            read_syntax_file(language.to_ascii_lowercase(), "flow.txt", &mut flow)
+        } else {
+            false
+        }
+    };
+    let types_exists = {
+        if lang_path.exists() {
+            read_syntax_file(language.to_ascii_lowercase(), "types.txt", &mut types)
+        } else {
+            false
+        }
+    };
+    let declaration_exists = {
+        if lang_path.exists() {
+            read_syntax_file(language.to_ascii_lowercase(), "declaration.txt", &mut declaration)
+        } else {
+            false
+        }
+    };
 
-        while let Some(c) = text.get(i..=i) {
-            match c {
-                "`" => {
-                    tokens.push(Token::new_single(TokenType::CodeBlockEnd as usize, i, String::from("`")));
-                    i += 1; // to step over the following newline
-                    break;
-                }
-                "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9" =>  {
-                    tokens.push(Token::new_single(TokenType::CodeBlockDigit as usize, i, String::from(c)));
-                }
-                ";"|":"|"("|")"|"{"|"}"|"["|"]"|"."|","|"+"|"-"|"*"|"/"|"<"|">"|"\\"|"&"|"="|"!"|"%" =>  {
-                    tokens.push(Token::new_single(TokenType::CodeBlockSymbol as usize, i, String::from(c)));
-                }
-                "\""|"'" => {
-                    tokens.push(Token::new_single(TokenType::CodeBlockString as usize, i, String::from(c)));
-                    i += 1;
-                    while let Some(c) = text.get(i..=i) {
-                        match c {
-                            "\""|"'" => {
-                                tokens.push(Token::new_single(TokenType::CodeBlockString as usize, i, String::from(c)));
-                                break;
-                            }
-                            "`" => {
-                                line += 1;
-                                i -= 1; // to make the outer loop match the closing `
-                                break;
-                            }
-                            _ => tokens.push(Token::new_single(TokenType::CodeBlockString as usize, i, String::from(c))),
+    while let Some(c) = text.get(i..=i) {
+        match c {
+            "`" => {
+                tokens.push(Token::new_single(TokenType::CodeBlockEnd as usize, i, String::from("`")));
+                i += 1; // to step over the following newline
+                break;
+            }
+            "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9" =>  {
+                tokens.push(Token::new_single(TokenType::CodeBlockDigit as usize, i, String::from(c)));
+            }
+            ";"|":"|"("|")"|"{"|"}"|"["|"]"|"."|","|"+"|"-"|"*"|"/"|"<"|">"|"\\"|"&"|"="|"!"|"%" =>  {
+                tokens.push(Token::new_single(TokenType::CodeBlockSymbol as usize, i, String::from(c)));
+            }
+            "\""|"'" => {
+                tokens.push(Token::new_single(TokenType::CodeBlockString as usize, i, String::from(c)));
+                i += 1;
+                while let Some(c) = text.get(i..=i) {
+                    match c {
+                        "\""|"'" => {
+                            tokens.push(Token::new_single(TokenType::CodeBlockString as usize, i, String::from(c)));
+                            break;
                         }
-                        i += 1;
+                        "`" => {
+                            line += 1;
+                            i -= 1; // to make the outer loop match the closing `
+                            break;
+                        }
+                        _ => tokens.push(Token::new_single(TokenType::CodeBlockString as usize, i, String::from(c))),
                     }
+                    i += 1;
                 }
-                _ => {
-                    
-                    if lang_path.exists() {
-                        let mut key = false;
-                        for k in keywords.iter() {
-                            if match_keyword(k, &text, i) {
-                                tokens.push(Token::new(TokenType::CodeBlockKeyword as usize, i, i + k.len(), String::from(k)));
-                                i += k.len() - 1;
-                                key = true;
-                                if declaration_exists {
-                                    for d in declaration.iter() {
-                                        if k == d {
-                                            i += 1;
-                                            while let Some(c) = text.get(i..=i) {
-                                                match c {
-                                                    ":"|"("|"{"|"<" => {
-                                                        tokens.push(Token::new_single(TokenType::CodeBlockSymbol as usize, i, String::from(c)));
-                                                        break;
-                                                    }
-                                                    _ => tokens.push(Token::new_single(TokenType::CodeBlockClass as usize, i, String::from(c))),
+            }
+            _ => {
+                if lang_path.exists() {
+                    let mut key = false;
+                    for k in keywords.iter() {
+                        if match_keyword(k, &text, i) {
+                            tokens.push(Token::new(TokenType::CodeBlockKeyword as usize, i, i + k.len(), String::from(k)));
+                            i += k.len() - 1;
+                            key = true;
+                            if declaration_exists {
+                                for d in declaration.iter() {
+                                    if k == d {
+                                        i += 1;
+                                        while let Some(c) = text.get(i..=i) {
+                                            match c {
+                                                ":"|"("|"{"|"<" => {
+                                                    tokens.push(Token::new_single(TokenType::CodeBlockSymbol as usize, i, String::from(c)));
+                                                    break;
                                                 }
-                                                i += 1;
+                                                _ => tokens.push(Token::new_single(TokenType::CodeBlockClass as usize, i, String::from(c))),
                                             }
-                                            break;
+                                            i += 1;
                                         }
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                        if !key {
-                            for f in flow.iter() {
-                                if match_keyword(f, &text, i) {
-                                    tokens.push(Token::new(TokenType::CodeBlockFlow as usize, i, i + f.len(), String::from(f)));
-                                    i += f.len() - 1;
-                                    key = true;
-                                    break;
-                                }
-                            }
-                            if !key {
-                                for t in types.iter() {
-                                    if match_keyword(t, &text, i) {
-                                        tokens.push(Token::new(TokenType::CodeBlockType as usize, i, i + t.len(), String::from(t)));
-                                        i += t.len() - 1;
-                                        key = true;
                                         break;
                                     }
                                 }
                             }
+                            break;
                         }
-
+                    }
+                    if !key {
+                        for f in flow.iter() {
+                            if match_keyword(f, &text, i) {
+                                tokens.push(Token::new(TokenType::CodeBlockFlow as usize, i, i + f.len(), String::from(f)));
+                                i += f.len() - 1;
+                                key = true;
+                                break;
+                            }
+                        }
                         if !key {
-                            tokens.push(Token::new_single(TokenType::CodeBlock as usize, i, String::from(c)));
+                            for t in types.iter() {
+                                if match_keyword(t, &text, i) {
+                                    tokens.push(Token::new(TokenType::CodeBlockType as usize, i, i + t.len(), String::from(t)));
+                                    i += t.len() - 1;
+                                    key = true;
+                                    break;
+                                }
+                            }
                         }
-                    } else {
+                    }
+
+                    if !key {
                         tokens.push(Token::new_single(TokenType::CodeBlock as usize, i, String::from(c)));
                     }
+                } else {
+                    tokens.push(Token::new_single(TokenType::CodeBlock as usize, i, String::from(c)));
                 }
+            }
+        }
+        i += 1;
+    }
+
+    (i, line)
+}
+
+fn read_syntax_file(language: String, file: &str, syntax: &mut Vec<String>) -> bool {
+    let mut exists = false;
+
+    let syntax_path = format!("Syntax/{}/{}", language, file);
+    let x_file = match fs::read_to_string(syntax_path) {
+        Ok(val) => {
+            exists = true;
+            val
+        }
+        Err(_) => "error".to_string(),
+    };
+
+    if exists {
+        for line in x_file.split('\n') {
+            syntax.push(String::from(line));
+        }
+    }
+
+    exists
+}
+
+pub fn match_image(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+    let mut next_c = match text.get(i + 1..=i + 1) { Some(val) => val, None => return (i, line),};
+    if next_c == "[" {
+        tokens.push(Token::new_double(TokenType::ImageAltBegin as usize, i, String::from("![")));
+        i += 2;
+        let start: usize = i;
+        let mut alt_text: String = String::new();
+        while let Some(c) = text.get(i..=i) {
+            match c {
+                "]" => {
+                    tokens.push(Token::new(TokenType::ImageAltText as usize, start, i, alt_text));
+                    tokens.push(Token::new_single(TokenType::ImageAltEnd as usize, i, String::from("]")));
+                    i += 1;
+                    break;
+                }
+                "\n" => {
+                    debug::warn(format!("Line: {} Index: {} -> Couldn't find closing ']' before a newline!", line, i).as_str());
+                    tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(c)));
+                    line += 1;
+                    break;
+                }
+                _ => alt_text += c,
             }
             i += 1;
         }
-    } else {
-        tokens.push(Token::new_single(TokenType::CodeBegin as usize, i, String::from("`")));
-        let start = i;
-        let mut code_text: String = String::new();
-        i += 1;
-        while let Some(next_c) = text.get(i..=i) {
-            match next_c {
-                "`" => {
-                    tokens.push(Token::new(TokenType::Code as usize, start, i, code_text));
-                    tokens.push(Token::new_single(TokenType::CodeEnd as usize, i, String::from("`")));
+        next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
+        match next_c {
+            "(" => {
+                tokens.push(Token::new_single(TokenType::ImagePathBegin as usize, i, String::from("(")));
+                i += 1;
+                let start: usize = i;
+                let mut image_path: String = String::new();
+                while let Some(c) = text.get(i..=i) {
+                    match c {
+                        ")" => {
+                            tokens.push(Token::new(TokenType::ImagePathText as usize, start, i, image_path));
+                            tokens.push(Token::new_single(TokenType::ImagePathEnd as usize, i, String::from(")")));
+                            i += 1;
+                            break;
+                        }
+                        "\n" => {
+                            debug::warn(format!("Line: {} Index: {} -> Couldn't find closing ']' before a newline!", line, i).as_str());
+                            tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(c)));
+                            line += 1;
+                            break;
+                        }
+                        _ => image_path += c,
+                    }
+                    i += 1;
+                }
+            }
+            _ => {
+                debug::warn(format!("Line: {} Index: {} -> Incorrect image declaration! Expected '(' found '{}'", line, i, next_c).as_str());
+                tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(next_c)));
+            }
+        }
+    }
+
+    (i, line)
+}
+
+pub fn match_link(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+    let mut next_c = match text.get(i + 1..=i + 1) { Some(val) => val, None => return (i, line),};
+    if next_c == "[" {
+        tokens.push(Token::new_double(TokenType::LinkAltBegin as usize, i, String::from("![")));
+        i += 2;
+        let start: usize = i;
+        let mut alt_text: String = String::new();
+        while let Some(c) = text.get(i..=i) {
+            match c {
+                "]" => {
+                    tokens.push(Token::new(TokenType::LinkAltText as usize, start, i, alt_text));
+                    tokens.push(Token::new_single(TokenType::LinkAltEnd as usize, i, String::from("]")));
+                    i += 1;
                     break;
                 }
-                "\n" => line += 1, // this should prob break since its now goint to keep the formatting anyway
-                _ => code_text += next_c,
+                "\n" => {
+                    debug::warn(format!("Line: {} Index: {} -> Couldn't find closing ']' before a newline!", line, i).as_str());
+                    tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(c)));
+                    line += 1;
+                    break;
+                }
+                _ => alt_text += c,
+            }
+            i += 1;
+        }
+        next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
+        match next_c {
+            "(" => {
+                tokens.push(Token::new_single(TokenType::LinkPathBegin as usize, i, String::from("(")));
+                i += 1;
+                let start: usize = i;
+                let mut link_path: String = String::new();
+                while let Some(c) = text.get(i..=i) {
+                    match c {
+                        ")" => {
+                            tokens.push(Token::new(TokenType::LinkPathText as usize, start, i, link_path));
+                            tokens.push(Token::new_single(TokenType::LinkPathEnd as usize, i, String::from(")")));
+                            i += 1;
+                            break;
+                        }
+                        "\n" => {
+                            debug::warn(format!("Line: {} Index: {} -> Couldn't find closing ']' before a newline!", line, i).as_str());
+                            tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(c)));
+                            line += 1;
+                            break;
+                        }
+                        _ => link_path += c,
+                    }
+                    i += 1;
+                }
+            }
+            _ => {
+                debug::warn(format!("Line: {} Index: {} -> Incorrect link declaration! Expected '(' found '{}'", line, i, next_c).as_str());
+                tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(next_c)));
+            }
+        }
+    }
+
+    (i, line)
+}
+
+pub fn match_html(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+    let mut html: bool = false;
+    if match text.get(i + 1..=i + 1) { Some(val) => val, None => return (i, line),} == "<" {
+        tokens.push(Token::new_double(TokenType::HtmlBegin as usize, i, String::from("<<")));
+        i += 1;
+        html = true;
+    } else if match text.get(i + 1..=i + 1) { Some(val) => val, None => return (i, line),} == "/" {
+        tokens.push(Token::new_double(TokenType::HtmlBegin as usize, i, String::from("</")));
+        i += 1;
+        html = true;
+    }
+
+    if html {
+        i += 1;
+        let start: usize = i;
+        while let Some(c) = text.get(i..=i) {
+            match c {
+                ">" => {
+                    tokens.push(Token::new_single(TokenType::HtmlEnd as usize, i, String::from(">")));
+                    break;
+                }
+                "\"" => {
+                    tokens.push(Token::new_single(TokenType::HtmlAttributeText as usize, i, String::from("\"")));
+                    i += 1;
+                    while let Some(c) = text.get(i..=i) {
+                        match c {
+                            "\"" => {
+                                tokens.push(Token::new_single(TokenType::HtmlAttributeText as usize, i, String::from("\"")));
+                                break;
+                            }
+                            "\n" => {
+                                debug::warn(format!("Line: {} Index: {} -> Couldn't find closing '\"' before a newline!", line, i).as_str());
+                                tokens.push(Token::new_single(TokenType::Error as usize, i, String::from(c)));
+                                line += 1;
+                                i += 1;
+                                break;
+                            }
+                            _ => tokens.push(Token::new_single(TokenType::HtmlAttributeText as usize, i, String::from(c))),
+                        }
+                        i += 1;
+                    }
+                }
+                _ => tokens.push(Token::new_single(TokenType::HtmlText as usize, i, String::from(c))),
             }
             i += 1;
         }
     }
+    
+    (i, line)
+}
+
+pub fn match_comment(text: &str, mut i: usize, line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+    i += 1;
+    let mut next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
+    if let "/" = next_c {
+        tokens.push(Token::new_single(TokenType::Comment as usize, i - 1, String::from(next_c)));
+        tokens.push(Token::new_single(TokenType::Comment as usize, i, String::from(next_c)));
+        while next_c != "\n" {
+            i += 1;
+            next_c = match text.get(i..=i) { Some(val) => val, None => break,};
+            tokens.push(Token::new_single(TokenType::Comment as usize, i, String::from(next_c)));
+        }
+    }  
 
     (i, line)
 }
