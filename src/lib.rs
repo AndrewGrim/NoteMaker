@@ -21,6 +21,109 @@ use token_type::TokenType;
 mod lexer;
 use lexer::*;
 
+mod position;
+use position::Position;
+
+#[pyfunction]
+fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
+    let mut tokens: Vec<Token> = Vec::with_capacity(text.len());
+
+    let mut pos: Position = Position::new(0, 0);
+    while pos.index < text.len() {
+        let c = match text.get(pos.index..=pos.index) { Some(val) => val, None => break,};
+
+        match c {
+            "\n" => {
+                tokens.push(Token::new_single(TokenType::Newline as usize, pos.index, String::from(c)));
+                pos.newline();
+            }
+            "\t" => tokens.push(Token::new_single(TokenType::Tab as usize, pos.index, String::from(c))),
+            " " => tokens.push(Token::new_single(TokenType::Tab as usize, pos.index, String::from(c))),
+            "#" => {
+                pos.update(match_heading(&text, pos.index, pos.line, &mut tokens));
+            }
+            "*" => { // TODO rework to just parse the opening or closing tag not text within
+                pos.increment();
+                let next_c = match text.get(pos.index..=pos.index) { Some(val) => val, None => break,};
+                match next_c {
+                    "*" => {
+                        pos.update(match_bold(&text, pos.index, pos.line, &mut tokens));
+                    }
+                    _ => {
+                        pos.update(match_italic(&text, pos.index, pos.line, &mut tokens));
+                    }
+                }
+            }
+            "~" => { // TODO rework to just parse the opening or closing tag not text within
+                pos.increment();
+                let next_c = match text.get(pos.index..=pos.index) { Some(val) => val, None => break,};
+                if let "~" = next_c {
+                    pos.update(match_strike(&text, pos.index, pos.line, &mut tokens));
+                }
+            }
+            "_" => { // TODO rework to just parse the opening or closing tag not text within
+                pos.increment();
+                let next_c = match text.get(pos.index..=pos.index) { Some(val) => val, None => break,};
+                if let "_" = next_c {
+                    pos.update(match_underline(&text, pos.index, pos.line, &mut tokens));
+                }
+            }
+            ":" => { // TODO allow for formatting within list text
+                pos.increment();
+                let next_c = match text.get(pos.index..=pos.index) { Some(val) => val, None => break,};
+                if let ":" = next_c {
+                    pos.update(match_list(&text, pos.index, pos.line, &mut tokens));
+                } else {
+                    tokens.push(Token::new_single(TokenType::Text as usize, pos.index, String::from(c)));
+                }
+            }
+            ">" => {
+                let next_c = match text.get(pos.index + 1..=pos.index + 1) { Some(val) => val, None => break,};
+                if let " " = next_c {
+                    pos.update(match_blockquote(&text, pos.index, pos.line, &mut tokens));
+                }
+            }
+            "-" => {
+                let next_c = match text.get(pos.index + 1..=pos.index + 1) { Some(val) => val, None => break,}; // TODO this and other occurances might be better with a return or a continue??
+                if next_c == "-" && match text.get(pos.index + 2..=pos.index + 2) { Some(val) => val, None => break,} == "-" {
+                    tokens.push(Token::new(TokenType::HorizontalRule as usize, pos.index, pos.index + 3, String::from("---")));
+                    pos.index += 3; // to step over the newline following the hr
+                    pos.newline();
+                } else if next_c == " " {
+                    if match text.get(pos.index + 2..=pos.index + 5) { Some(val) => val, None => break,} == "[ ] " {
+                        tokens.push(Token::new(TokenType::UnChecked as usize, pos.index, pos.index + 6, String::from("- [ ] ")));
+                        pos.index += 5;
+                    } else if next_c == " " && match text.get(pos.index + 2..=pos.index + 5) { Some(val) => val, None => break,} == "[x] " {
+                        tokens.push(Token::new(TokenType::Checked as usize, pos.index, pos.index + 6, String::from("- [x] ")));
+                        pos.index += 5;
+                    } 
+                    tokens.push(Token::space(pos.index));
+                }
+            }
+            "`" => {
+                pos.update(match_backticks(&text, pos.index, pos.line, &mut tokens));
+            }
+            "!" => {
+                pos.update(match_image(&text, pos.index, pos.line, &mut tokens));
+            }
+            "?" => {
+                pos.update(match_link(&text, pos.index, pos.line, &mut tokens));
+            }
+            "<" => {
+                pos.update(match_html(&text, pos.index, pos.line, &mut tokens));
+            }
+            "/" => {
+                pos.update(match_comment(&text, pos.index, pos.line, &mut tokens));
+            }
+            _ => tokens.push(Token::new_single(TokenType::Text as usize, pos.index, String::from(c))),
+        }
+
+        pos.increment();
+    }
+
+    Ok(tokens)
+}
+
 #[pyfunction]
 fn regex_lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
     let keywords = [
@@ -141,131 +244,6 @@ fn regex_lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
         for mat in Regex::new(r#"['"][^"']+["']"#).unwrap().find_iter(o_mat.as_str()) {
             tokens.push(Token::new(20, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
         }
-    }
-
-    Ok(tokens)
-}
-
-#[pyfunction]
-fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
-    let mut tokens: Vec<Token> = Vec::with_capacity(text.len());
-
-    let mut i: usize = 0;
-    let mut line: usize = 1;
-    while i < text.len() {
-        let c = match text.get(i..=i) { Some(val) => val, None => break,};
-
-        match c {
-            "\n" => {
-                tokens.push(Token::new_single(TokenType::Newline as usize, i, String::from(c)));
-                line += 1;
-            }
-            "\t" => tokens.push(Token::new_single(TokenType::Tab as usize, i, String::from(c))),
-            " " => tokens.push(Token::new_single(TokenType::Tab as usize, i, String::from(c))),
-            "#" => {
-                let result = match_heading(&text, i, line, &mut tokens);
-                i = result.0;
-                line = result.1;
-            }
-            "*" => { // TODO rework to just parse the opening or closing tag not text within
-                i += 1;
-                let next_c = match text.get(i..=i) { Some(val) => val, None => break,};
-                match next_c {
-                    "*" => {
-                        let result = match_bold(&text, i, line, &mut tokens);
-                        i = result.0;
-                        line = result.1;
-                    }
-                    _ => {
-                        let result = match_italic(&text, i, line, &mut tokens);
-                        i = result.0;
-                        line = result.1;
-                    }
-                }
-            }
-            "~" => { // TODO rework to just parse the opening or closing tag not text within
-                i += 1;
-                let next_c = match text.get(i..=i) { Some(val) => val, None => break,};
-                if let "~" = next_c {
-                    let result = match_strike(&text, i, line, &mut tokens);
-                    i = result.0;
-                    line = result.1;
-                }
-            }
-            "_" => { // TODO rework to just parse the opening or closing tag not text within
-                i += 1;
-                let next_c = match text.get(i..=i) { Some(val) => val, None => break,};
-                if let "_" = next_c {
-                    let result = match_underline(&text, i, line, &mut tokens);
-                    i = result.0;
-                    line = result.1;
-                }
-            }
-            ":" => { // TODO allow for formatting within list text
-                i += 1;
-                let next_c = match text.get(i..=i) { Some(val) => val, None => break,};
-                if let ":" = next_c {
-                    let result = match_list(&text, i, line, &mut tokens);
-                    i = result.0;
-                    line = result.1;
-                } else {
-                    tokens.push(Token::new_single(TokenType::Text as usize, i, String::from(c)));
-                }
-            }
-            ">" => {
-                let next_c = match text.get(i + 1..=i + 1) { Some(val) => val, None => break,};
-                if let " " = next_c {
-                    let result = match_blockquote(&text, i, line, &mut tokens);
-                    i = result.0;
-                    line = result.1;
-                }
-            }
-            "-" => {
-                let next_c = match text.get(i + 1..=i + 1) { Some(val) => val, None => break,}; // TODO this and other occurances might be better with a return or a continue??
-                if next_c == "-" && match text.get(i + 2..=i + 2) { Some(val) => val, None => break,} == "-" {
-                    tokens.push(Token::new(TokenType::HorizontalRule as usize, i, i + 3, String::from("---")));
-                    i += 3; // to step over the newline following the hr
-                    line += 1;
-                } else if next_c == " " {
-                    if match text.get(i + 2..=i + 5) { Some(val) => val, None => break,} == "[ ] " {
-                        tokens.push(Token::new(TokenType::UnChecked as usize, i, i + 6, String::from("- [ ] ")));
-                        i += 5;
-                    } else if next_c == " " && match text.get(i + 2..=i + 5) { Some(val) => val, None => break,} == "[x] " {
-                        tokens.push(Token::new(TokenType::Checked as usize, i, i + 6, String::from("- [x] ")));
-                        i += 5;
-                    } 
-                    tokens.push(Token::space(i));
-                }
-            }
-            "`" => {
-                let result = match_backticks(&text, i, line, &mut tokens);
-                i = result.0;
-                line = result.1;
-            }
-            "!" => {
-                let result = match_image(&text, i, line, &mut tokens);
-                i = result.0;
-                line = result.1;
-            }
-            "?" => {
-                let result = match_link(&text, i, line, &mut tokens);
-                i = result.0;
-                line = result.1;
-            }
-            "<" => {
-                let result = match_html(&text, i, line, &mut tokens);
-                i = result.0;
-                line = result.1;
-            }
-            "/" => {
-                let result = match_comment(&text, i, line, &mut tokens);
-                i = result.0;
-                line = result.1;
-            }
-            _ => tokens.push(Token::new_single(TokenType::Text as usize, i, String::from(c))),
-        }
-
-        i += 1;
     }
 
     Ok(tokens)
