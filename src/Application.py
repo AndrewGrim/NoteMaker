@@ -191,13 +191,10 @@ class Application(wx.Frame):
 			except IOError:
 				fail(f"Cannot save current data in file '{self.currentAMD}'.")
 
-		tokens = lexer.lex(self.edit.GetValue())
-		parse(tokens, self.html, self.exeDir)
 		if self.currentAMD != None:
-			self.wv.LoadURL(self.html)
-		else:
+			tokens = lexer.lex(self.edit.GetValue())
+			parse(tokens, self.html, self.exeDir)
 			self.onReload(None)
-		self.edit.SetFocus()
 
 
 	def onOpen(self, event):
