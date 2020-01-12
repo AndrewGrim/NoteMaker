@@ -10,7 +10,6 @@ from typing import NewType
 
 from TokenTypes import *
 from Token import *
-from Debug import *
 
 LexerToken = NewType('Token', None)
 

@@ -8,11 +8,10 @@ import wx
 import wx.html2 as webview
 import wx.stc as stc
 
-from Lexer import *
 from Styles import *
 from TokenTypes import *
 from Token import *
-from Debug import *
+import utilities as util
 from Parser import *
 
 import lexer
@@ -67,13 +66,13 @@ class Application(wx.Frame):
 			try:
 				self.edit.LoadFile(self.currentAMD)
 			except:
-				fail(f"Unable to load the file: {self.currentAMD}")
+				util.fail(f"Unable to load the file: {self.currentAMD}")
 		
 		if self.currentAMD != None:
 			try:
 				self.wv.LoadURL(self.html)
 			except:
-				fail(f"Unable to load the html file: {self.html}")
+				util.fail(f"Unable to load the html file: {self.html}")
 
 		self.makeMenuBar()
 		self.SetSize((1280, 720))
@@ -189,7 +188,7 @@ class Application(wx.Frame):
 				f.write(self.edit.GetValue().encode("UTF-8").replace(b"\r\n", b"\n")) # TODO line endings, encoding settings
 				f.close() 
 			except IOError:
-				fail(f"Cannot save current data in file '{self.currentAMD}'.")
+				util.fail(f"Cannot save current data in file '{self.currentAMD}'.")
 
 		if self.currentAMD != None:
 			tokens = lexer.lex(self.edit.GetValue())
@@ -292,5 +291,5 @@ if __name__ == '__main__':
 	app = wx.App()
 	frm = Application(None)
 	end = time.time()
-	info(f"Application load time: {round(end - start, 2)}s")
+	util.info(f"Application load time: {round(end - start, 2)}s")
 	app.MainLoop()
