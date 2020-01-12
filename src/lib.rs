@@ -153,7 +153,7 @@ fn regex_lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
         tokens.push(Token::new(12, mat.start(), mat.end(), String::from(mat.as_str())));
     }
 
-    for mat in Regex::new(r"[<>\\/*:;!?\[\]>\(\)\-~_,.=]").unwrap().find_iter(&text) {
+    for mat in Regex::new(r"[<>\\/*:;!?\[\]>\(\)\-~_,.={}&$%+]").unwrap().find_iter(&text) {
         tokens.push(Token::new(5, mat.start(), mat.end(), String::from(mat.as_str())));
     }
 
@@ -281,7 +281,7 @@ fn tokenize_codeblock(text: &str, tokens: &mut Vec<Token>) {
                 tokens.push(Token::new(26, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
             }
 
-            for mat in Regex::new(r"[<>\\/*:;!?\[\]>\(\)\-~_,.=]").unwrap().find_iter(o_mat.as_str()) {
+            for mat in Regex::new(r"[<>\\/*:;!?\[\]>\(\)\-~_,.={}&$%+]").unwrap().find_iter(o_mat.as_str()) {
                 tokens.push(Token::new(18, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
             }
 
