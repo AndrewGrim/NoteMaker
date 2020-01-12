@@ -17,6 +17,14 @@ class COLOR:
     YELLOW = '\033[93m'
     RED = '\033[91m'
     END = '\033[0m'
+
+
+    def light_green(text: str) -> str:
+        return f"{COLOR.LIGHT_GREEN}{text}{COLOR.END}"
+
+
+    def red(text: str) -> str:
+        return f"{COLOR.RED}{text}{COLOR.END}"
     
 
 class STYLE:
@@ -31,6 +39,10 @@ class STYLE:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     END = '\033[0m'
+
+
+    def bold(text: str) -> str:
+        return f"{STYLE.BOLD}{text}{STYLE.END}"
 
 
 def fail(message: str) -> None:

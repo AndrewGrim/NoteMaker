@@ -39,6 +39,9 @@ class ZipDir:
         self.dir_path = dir_path
         self.required_files = required_files
         self.required_dirs = required_dirs
+        self.successful = 0
+        self.failed = 0
+        self.build()
 
         
     def build_message(self, message: str, status: str, color: class_COLOR) -> None:
@@ -80,37 +83,54 @@ class ZipDir:
             shutil.rmtree(self.dir_path)
             os.mkdir(self.dir_path)
             self.ok_message(f"Cleaning build directory: '{self.dir_path}'")
+            self.successful += 1
         except Exception as e:
             self.fail_message(f"Cleaning build directory: '{self.dir_path}'")
+            self.failed += 1
             print(e)
 
-        for directory in self.required_dirs:
-            try:
-                shutil.copytree(f"{directory}", f"{self.dir_path}/{directory}")
-                self.ok_message(f"Copying directory: '{directory}'")
-            except Exception as e:
-                self.fail_message(f"Copying directory: '{directory}'")
-                print(e)
+        if self.required_dirs != None:
+            for directory in self.required_dirs:
+                try:
+                    shutil.copytree(f"{directory}", f"{self.dir_path}/{directory}")
+                    self.ok_message(f"Copying directory: '{directory}'")
+                    self.successful += 1
+                except Exception as e:
+                    self.fail_message(f"Copying directory: '{directory}'")
+                    self.failed += 1
+                    print(e)
 
-        for f in self.required_files:
-            try:
-                shutil.copy(f, self.dir_path)
-                self.ok_message(f"Copying file: '{f}'")
-            except Exception as e:
-                self.fail_message(f"Copying file: '{f}'")
-                print(e)
+        if self.required_files != None:
+            for f in self.required_files:
+                try:
+                    shutil.copy(f, self.dir_path)
+                    self.ok_message(f"Copying file: '{f}'")
+                    self.successful += 1
+                except Exception as e:
+                    self.fail_message(f"Copying file: '{f}'")
+                    self.failed += 1
+                    print(e)
 
         try:
             archive = zipfile.ZipFile(f"{self.dir_path}.zip", "w", zipfile.ZIP_DEFLATED, True, 9)
             self.ok_message(f"Creating archive: '{self.dir_path}.zip'")
+            self.successful += 1
             for f in get_dir_paths(self.dir_path):
                 try:
                     archive.write(f)
                     self.ok_message(f"Writing file to archive: '{f}'")
+                    self.successful += 1
                 except Exception as e:
                     self.fail_message(f"Writing file to archive: '{f}'")
+                    self.failed += 1
                     print(e)
             archive.close()
         except Exception as e:
             self.fail_message(f"Creating archive: '{self.dir_path}.zip'")
+            self.failed += 1
             print(e)
+
+        text = util.STYLE.bold("Finished building zipfile:")
+        success = util.COLOR.light_green(self.successful)
+        fail = util.COLOR.red(self.failed)
+        print(f"{text}\n\tSuccessful: {success}\n\tFailed: {fail}")
