@@ -8,6 +8,8 @@ commit:
 	cargo test && cargo clippy
 exe:
 	pyinstaller -w -F -i images/amd.ico src/Application.py && cp dist/Application.exe ../NoteMaker && mv Application.exe NoteMaker.exe
+zip: exe
+	python src/build.py
 lexer:
 	cargo build && cp target/debug/lexer.dll src/lexer.pyd 
 lexer.release:

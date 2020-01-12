@@ -130,6 +130,8 @@ dmypy.json
 .vscode/settings.json
 
 /Notes
+/NoteMaker
+*.zip
 *.exe
 *.pyd
 run.bat
