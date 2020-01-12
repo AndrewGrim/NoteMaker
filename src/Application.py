@@ -162,7 +162,7 @@ class Application(wx.Frame):
 
 	
 	def onQuit(self, event):
-		sys.exit()
+		self.onClose(None)
 
 
 	def onNew(self, event):
