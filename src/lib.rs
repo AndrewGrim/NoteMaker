@@ -205,7 +205,7 @@ fn tokenize_codeblock(text: &str, tokens: &mut Vec<Token>) {
             tokens.push(Token::new_single(16, o_mat.start(), String::from("f")));
             tokens.push(Token::new_single(4, o_mat.start() + 1, String::from("`")));
             tokens.push(Token::new_single(4, o_mat.end() - 1, String::from("`")));
-            tokens.push(Token::new(16, mat.start() + o_mat.start() + 1, mat.end() + o_mat.start(), String::from(mat.as_str())));
+            tokens.push(Token::new(16, mat.start() + o_mat.start() + 2, mat.end() + o_mat.start(), String::from(mat.as_str())));
 
             let language = String::from(mat.as_str().get(2..mat.as_str().len() - 1).expect("failed to get language slice"));
             let path = format!("Syntax/{}", language.to_ascii_lowercase());
