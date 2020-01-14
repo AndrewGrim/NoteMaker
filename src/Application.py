@@ -176,6 +176,13 @@ class Application(wx.Frame):
 			f = open(self.currentAMD, "wb")
 			f.write(self.edit.GetValue().encode("UTF-8").replace(b"\r\n", b"\n")) # TODO line endings, encoding settings
 			f.close() 
+			tokens = lexer.lex(self.edit.GetValue())
+			start = time.time()
+			parse(tokens, self.html, self.exeDir)
+			end = time.time()
+			print(f"parsing: {end - start}")
+			self.onReload(None)
+			self.edit.SetFocus()
 		else:
 			fileDialog = wx.FileDialog(self, "Save As...", wildcard="AlmostMarkdown (*.amd)|*.amd", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 
@@ -189,15 +196,9 @@ class Application(wx.Frame):
 				f.close() 
 			except IOError:
 				util.fail(f"Cannot save current data in file '{self.currentAMD}'.")
-
-		if self.currentAMD != None:
 			tokens = lexer.lex(self.edit.GetValue())
-			start = time.time()
 			parse(tokens, self.html, self.exeDir)
-			end = time.time()
-			print(f"parsing: {end - start}")
-			self.onReload(None)
-			self.edit.SetFocus()
+			self.wv.LoadURL(f"file://{self.html}")
 
 
 	def onOpen(self, event):
