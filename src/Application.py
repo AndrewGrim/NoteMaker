@@ -20,6 +20,14 @@ import lexer
 class Application(wx.Frame):
 
 	def __init__(self, *args, **kw):
+		"""
+		Initializes the application:\n
+			* On windows machines it enables colored output first.
+			* Sets up the UI.
+			* Sets the various preferences.
+			* Does the inital lexing and parsing.
+		"""
+
 		super(Application, self).__init__(*args, **kw)
 		if platform.system() == "Windows":
 			os.system("color")
@@ -70,7 +78,7 @@ class Application(wx.Frame):
 		
 		if self.currentAMD != None:
 			try:
-				self.wv.LoadURL(self.html)
+				self.wv.LoadURL(f"file://{self.html}") 
 			except:
 				util.fail(f"Unable to load the html file: {self.html}")
 
@@ -99,6 +107,11 @@ class Application(wx.Frame):
 
 
 	def onSize(self, event):
+		"""
+		Runs when the window is resized:\n
+			* Resizes the status bar to fit the new size of the window.
+		"""
+
 		w = self.GetSize()[0]
 		w = w - 7 * 100
 		self.status.SetStatusWidths([100, 100, 100, 100, w, 100, 100])
@@ -106,6 +119,11 @@ class Application(wx.Frame):
 
 	
 	def onUpdateUI(self, event):
+		"""
+		Runs when UpdateUI event is triggerd:\n
+			* Refreshes the status bar values.
+		"""
+
 		self.Freeze()
 		selectionBegin: int = self.edit.GetSelection()[0]
 		selectionEnd: int = self.edit.GetSelection()[1]
@@ -124,6 +142,11 @@ class Application(wx.Frame):
 		self.Thaw()
 
 	def onKeyUp(self, event):
+		"""
+		Runs when any key is pressed:\n
+			* Redoes the entire syntax highlight using regex from the dynamic module written in Rust.
+		"""
+
 		#start = time.time()
 		text = self.edit.GetValue()
 		tokens = lexer.regex_lex(text)
@@ -139,6 +162,10 @@ class Application(wx.Frame):
 
 
 	def makeMenuBar(self):
+		"""
+		Sets up the menu bar.
+		"""
+
 		fileMenu = wx.Menu()
 		newItem = fileMenu.Append(-1, "&New\tCtrl-N")
 		saveItem = fileMenu.Append(-1, "&Save\tCtrl-S")
@@ -161,17 +188,32 @@ class Application(wx.Frame):
 
 	
 	def onQuit(self, event):
+		"""
+		Closes the application by using the menu or by using the hotkey "Ctrl-Q". Runs onClose() to remove the temporary html file.
+		"""
+
 		self.onClose(None)
 
 
 	def onNew(self, event):
+		"""
+		Creates a new document.
+		"""
+
 		self.currentAMD = None
 		self.edit.ClearAll()
 		open(self.html, "w").write("")
-		self.wv.LoadURL(self.html)
+		self.wv.LoadURL(f"file://{self.html}") 
 
 
 	def onSave(self, event):
+		"""
+		Runs when the current document is saved:\n
+			* If the current file is known it just saves the file, and lexes and parses it.
+			* If its not then it shows a filedialog to save file and get its path.
+		In either scenario the files is saved as UTF-8 with LF line endings.
+		"""
+
 		if self.currentAMD != None:
 			f = open(self.currentAMD, "wb")
 			f.write(self.edit.GetValue().encode("UTF-8").replace(b"\r\n", b"\n")) # TODO line endings, encoding settings
@@ -193,15 +235,20 @@ class Application(wx.Frame):
 			try:
 				f = open(self.currentAMD, "wb")
 				f.write(self.edit.GetValue().encode("UTF-8").replace(b"\r\n", b"\n")) # TODO line endings, encoding settings
-				f.close() 
+				f.close()
+				tokens = lexer.lex(self.edit.GetValue())
+				parse(tokens, self.html, self.exeDir)
+				self.wv.LoadURL(f"file://{self.html}") 
 			except IOError:
 				util.fail(f"Cannot save current data in file '{self.currentAMD}'.")
-			tokens = lexer.lex(self.edit.GetValue())
-			parse(tokens, self.html, self.exeDir)
-			self.wv.LoadURL(f"file://{self.html}")
 
 
 	def onOpen(self, event):
+		"""
+		Runs when you try to open a file:\n
+			* Lexes and parses the document and loads it into webview.
+		"""
+
 		fd = wx.FileDialog(self, "Open...", wildcard="AlmostMarkdown files (*.amd)|*.amd", style=wx.FD_OPEN)
 
 		if fd.ShowModal() == wx.ID_CANCEL:
@@ -216,16 +263,24 @@ class Application(wx.Frame):
 			self.onKeyUp(wx.KeyEvent(wx.wxEVT_NULL))
 			tokens = lexer.lex(self.edit.GetValue())
 			parse(tokens, self.html, self.exeDir)
-			self.wv.LoadURL(self.html)
+			self.wv.LoadURL(f"file://{self.html}") 
 		except IOError:
 			wx.LogError("Cannot open the specified file '%s'." % pathname)
 
 	
 	def onReload(self, event):
+		"""
+		Reloads the webview keeping the current position.
+		"""
+
 		self.wv.Reload()
 
 
 	def onShowHidden(self, event):
+		"""
+		Shows normally hidden symbols like line endings and whitespace characters.
+		"""
+
 		if self.edit.GetViewWhiteSpace() == 0:
 			self.edit.StyleSetSpec(3, "fore:#00ff00,back:#282828,face:Courier New,size:10")	
 			self.edit.SetViewWhiteSpace(True)
@@ -237,6 +292,10 @@ class Application(wx.Frame):
 
 
 	def setupStyling(self):
+		"""
+		Sets up the styling colors and style of the stc editor.
+		"""
+
 		faces = {
 			'times': 'Times New Roman',
 			'mono' : 'Courier New',
@@ -283,6 +342,11 @@ class Application(wx.Frame):
 
 
 	def onClose(self, event):
+		"""
+		Runs when the application is being closed:\n
+			* Removes the temporary html file and closes the application.
+		"""
+
 		os.remove(self.html)
 		sys.exit()
 
