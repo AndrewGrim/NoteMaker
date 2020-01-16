@@ -286,7 +286,7 @@ fn tokenize_codeblock(text: &str, tokens: &mut Vec<Token>) {
             }
 
 
-            for mat in Regex::new(r#"['"][^"']+["']"#).unwrap().find_iter(o_mat.as_str()) {
+            for mat in Regex::new(r#"['"][^"']*["']"#).unwrap().find_iter(o_mat.as_str()) {
                 tokens.push(Token::new(20, mat.start() + o_mat.start(), mat.end() + o_mat.start(), String::from(mat.as_str())));
             }
 
