@@ -9,8 +9,8 @@ name = "lexer"
 crate-type = ["cdylib"]
 
 [dependencies.pyo3]
-version = "*"
+version = "0.8.4"
 features = ["extension-module"]
 
 [dependencies.regex]
-version = "*"
+version = "1.3.3"
