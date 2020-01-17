@@ -2,17 +2,14 @@ import time
 import os
 import sys
 import platform
-import subprocess
+import typing
 
 import wx
 import wx.html2 as webview
 import wx.stc as stc
 
 from Styles import *
-from TokenTypes import *
-from Token import *
 import utilities as util
-from Parser import *
 
 import lexer
 
@@ -99,11 +96,38 @@ class Application(wx.Frame):
 
 		self.onKeyUp(wx.KeyEvent(wx.wxEVT_NULL))
 		tokens = lexer.lex(self.edit.GetValue())
-		parse(tokens, self.html, self.exeDir)
+		self.generateHtml(tokens, self.html, self.exeDir)
 
 		self.Bind(wx.EVT_SIZE, self.onSize)
 		self.Bind(wx.EVT_CLOSE, self.onClose)
-		self.Show()		
+		self.Show()	
+
+
+	def generateHtml(self, tokens, html, css):
+		"""
+		Generates the html from the given lexer tokens.
+		"""
+
+		f = open(html, "w")
+		f.write("""<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Document</title>
+</head>
+		""")
+		if os.path.exists("css/default.css"):
+			style = open("css/default.css", "r").read()
+		else:
+			style = open(f"{css}css/default.css", "r").read()
+		f.write(f"<style>\n{style}\n</style>\n")
+		f.write("<body>")
+		f.write('<div class="markdown-body">')
+		for t in tokens:
+			f.write(t.html)
+		f.write("</div>")
+		f.write("</body>")
+		f.write("</html>")
+		f.close()
 
 
 	def onSize(self, event):
@@ -147,17 +171,11 @@ class Application(wx.Frame):
 			* Redoes the entire syntax highlight using regex from the dynamic module written in Rust.
 		"""
 
-		#start = time.time()
 		text = self.edit.GetValue()
 		tokens = lexer.regex_lex(text)
-		#end = time.time()
-		#print(f"reg lex: {end - start}")
-		#start = time.time()
 		for t in tokens:
 			self.edit.StartStyling(t.begin, 0xff)
 			self.edit.SetStyling(t.end - t.begin, t.id)
-		#end = time.time()
-		#print(f"color: {end - start}")
 		event.Skip()
 
 
@@ -219,10 +237,7 @@ class Application(wx.Frame):
 			f.write(self.edit.GetValue().encode("UTF-8").replace(b"\r\n", b"\n")) # TODO line endings, encoding settings
 			f.close() 
 			tokens = lexer.lex(self.edit.GetValue())
-			start = time.time()
-			parse(tokens, self.html, self.exeDir)
-			end = time.time()
-			print(f"parsing: {end - start}")
+			self.generateHtml(tokens, self.html, self.exeDir)
 			self.onReload(None)
 			self.edit.SetFocus()
 		else:
@@ -237,7 +252,7 @@ class Application(wx.Frame):
 				f.write(self.edit.GetValue().encode("UTF-8").replace(b"\r\n", b"\n")) # TODO line endings, encoding settings
 				f.close()
 				tokens = lexer.lex(self.edit.GetValue())
-				parse(tokens, self.html, self.exeDir)
+				self.generateHtml(tokens, self.html, self.exeDir)
 				self.wv.LoadURL(f"file://{self.html}") 
 			except IOError:
 				util.fail(f"Cannot save current data in file '{self.currentAMD}'.")
@@ -262,7 +277,7 @@ class Application(wx.Frame):
 			self.edit.LoadFile(pathname)
 			self.onKeyUp(wx.KeyEvent(wx.wxEVT_NULL))
 			tokens = lexer.lex(self.edit.GetValue())
-			parse(tokens, self.html, self.exeDir)
+			self.generateHtml(tokens, self.html, self.exeDir)
 			self.wv.LoadURL(f"file://{self.html}") 
 		except IOError:
 			wx.LogError("Cannot open the specified file '%s'." % pathname)
