@@ -1,0 +1,135 @@
+# heading1
+
+## heading2
+
+### heading3
+
+#### heading4
+
+##### heading5
+
+###### heading6
+
+::* list 1
+  ::1 list 2
+    2 list 2
+    ::* list 3
+      ::1 list 4
+      ;
+    ;
+    3 list 2
+  ;
+* list 1
+;
+
+> this is a block quote
+
+**bold**
+
+*italic*
+
+~~strikethrough~~
+
+__underlined__
+
+text
+
+---
+
+`code`
+
+p`
+pre-block that keeps the formatting
+    of the
+  text
+`
+
+## Python code block
+f`python
+class Test(Object):
+
+    def __init__(self):
+        self.test = 123
+
+        if x in ["a", "b", 'c']:
+            for x in y:
+                yield x
+
+        with open("file.txt", "r") as f:
+            while True:
+                try:
+                    f.read(1)
+                except Exception as e:
+                    print(e)
+                    break
+
+        return 0
+`
+
+## Rust code block
+f`rust
+struct Token {
+    id: usize,
+    begin: usize,
+    end: usize,
+    content: String,
+}
+
+let slice: &str = String::from("testing")[..];
+
+match c {
+  'a'...'z' => println!("found char"),
+  '0'...'9' => {
+      tokens.push(Token::new_single(
+          TokenType::Digit as usize, i, String::from(c)));
+      break;
+   }
+}
+
+enum TokenTypes {
+    Heading,
+    Code,
+    Digit,
+}
+
+fn test(path) -> bool { // comment
+    if path::Path::new("test.txt").exists() {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/*
+multi...
+  line
+    comment
+*/
+`
+
+f`d
+int main(string[] args) {
+    string s = "test";
+
+    return 0;
+}
+`
+
+- [ ] unchecked
+- [x] checked
+
+![alternative text](images/Nergigante24.png)
+
+?[this is a link](https://google.com)
+
+<<img src="images/Nergigante24.png" alt="alt text">
+
+<<strike><<u><<i><<b>inline html with closing tag<</b><</i><</u><</strike>
+
+// comment
+
+/*
+multi...
+  line
+    comment
+*/

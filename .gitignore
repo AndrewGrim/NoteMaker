@@ -129,7 +129,6 @@ dmypy.json
 .pyre/
 .vscode/settings.json
 
-/Notes
 /NoteMaker
 *.zip
 *.exe

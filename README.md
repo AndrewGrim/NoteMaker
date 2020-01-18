@@ -8,7 +8,7 @@ A full showcase of the supported features can be seen by opening the test.amd fi
 You can find a pre-built Windows binary on the [releases](https://github.com/AndrewGrim/NoteMaker/releases) page.
 
 ## Build
-You need `Python 3.6` and `wxPython` for running the actual application. 
+You need `Python 3.6` and `wxPython` for running the actual application. On linux you also need `libwebkitgtk-3.0-dev`.
 
 For building the Rust lexer you will need a `Nightly` build of Rust that supportes `PyO3 v0.8.4`.
 
