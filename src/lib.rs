@@ -122,6 +122,20 @@ fn lex(_py: Python, text: String) -> PyResult<Vec<Token>> {
                     tokens.push(Token::space(pos.index));
                 }
             }
+            "|" => {
+                if match text.get(pos.index..=pos.index + 2) { Some(val) => val, None => break,} == "|||" {
+                    pos.update(match_table(&text, pos.index, pos.line, &mut tokens));
+                } else {
+                    tokens.push(
+                        Token::new_single(
+                            TokenType::Text as usize, 
+                            pos.index,
+                            String::from(c), 
+                            String::from(c)
+                        )
+                    );
+                }
+            }
             "`" => {
                 pos.update(match_backticks(&text, pos.index, pos.line, &mut tokens));
             }
@@ -173,7 +187,7 @@ fn regex_lex(_py: Python, text: String) -> PyResult<Vec<RegexToken>> {
         tokens.push(RegexToken::new(Style::Image as usize, mat.start(), mat.end()));
     }
 
-    for mat in Regex::new(r"[<>\\/*:;!?\[\]>\(\)\-~_,.={}&$%+]").unwrap().find_iter(&text) {
+    for mat in Regex::new(r"[<>^\\/|*:;!?\[\]\(\)\-~_,.={}&$%+]").unwrap().find_iter(&text) {
         tokens.push(RegexToken::new(Style::Symbol as usize, mat.start(), mat.end()));
     }
 
@@ -301,7 +315,7 @@ fn tokenize_codeblock(text: &str, tokens: &mut Vec<RegexToken>) {
                 tokens.push(RegexToken::new(Style::CodeBlockDigit as usize, mat.start() + o_mat.start(), mat.end() + o_mat.start()));
             }
 
-            for mat in Regex::new(r"[<>\\/*:;!?\[\]>\(\)\-~_,.={}&$%+]").unwrap().find_iter(o_mat.as_str()) {
+            for mat in Regex::new(r"[<>^\\/|*:;!?\[\]\(\)\-~_,.={}&$%+]").unwrap().find_iter(o_mat.as_str()) {
                 tokens.push(RegexToken::new(Style::CodeBlockSymbol as usize, mat.start() + o_mat.start(), mat.end() + o_mat.start()));
             }
 

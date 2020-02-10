@@ -126,6 +126,12 @@ int main(string[] args) {
 
 <<strike><<u><<i><<b>inline html with closing tag<</b><</i><</u><</strike>
 
+|||
+|<Tables         |^Are             |>  Cool|^ another|
+| col 3 is       | right-aligned   |  $1600|    table|
+| col 2 is       | centered        |    $12|      col|
+| zebra stripes  | are neat        |     $1|      row|
+
 // comment
 
 /*

@@ -780,3 +780,84 @@ pub fn match_comment(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec
 
     (i, line)
 }
+
+pub fn match_table(text: &str, mut i: usize, mut line: usize, tokens: &mut Vec<Token>) -> (usize, usize) {
+    tokens.push(Token::new_single(TokenType::TableBegin as usize, i, String::from("|"), String::from("<table>\n")));
+    tokens.push(Token::new_single(TokenType::TableRowBegin as usize, i, String::from("|"), String::from("<tr>\n")));
+
+    let mut col_count: usize = 0;
+    let mut col_alignment: Vec<String> = Vec::new();
+
+    i += 5;
+    let mut next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
+    let mut start: usize = i;
+    while next_c != "\n" {
+        let mut table_text = String::new();
+        if next_c == "^" {
+            col_alignment.insert(col_count, String::from("\"center\""))
+        } else if next_c == ">" {
+            col_alignment.insert(col_count, String::from("\"right\""))
+        } else {
+            col_alignment.insert(col_count, String::from("\"left\""))
+        }
+        i += 1;
+        next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
+        while next_c != "|" {
+            table_text += next_c;
+            i += 1;
+            next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
+        }
+        i += 1;
+        tokens.push(
+            Token::new(
+                TokenType::TableHeading as usize, 
+                start + 1, i, table_text.clone(), 
+                format!("<th align={}>{}</th>\n", 
+                    match col_alignment.get(col_count) { Some(val) => val, None => return (i, line),}, 
+                    table_text
+                )
+            )
+        );
+        col_count += 1;
+        next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
+    }
+    tokens.push(Token::new_single(TokenType::TableRowEnd as usize, i, String::from("|"), String::from("</tr>\n")));
+    line += 1;
+
+    i += 1;
+    next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
+    while next_c != "\n" && match text.get(i + 1..=i + 1) { Some(val) => val, None => return (i, line),} != "\n" {
+        col_count = 0;
+        while next_c != "\n" {
+            let mut table_text = String::new();
+            i += 1;
+            next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
+            start = i;
+            while next_c != "|" {
+                table_text += next_c;
+                i += 1;
+                next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
+            }
+            i += 1;
+            tokens.push(
+                Token::new(
+                    TokenType::TableData as usize, 
+                    start + 1, i, table_text.clone(), 
+                    format!("<td align={}>{}</td>\n", 
+                        match col_alignment.get(col_count) { Some(val) => val, None => return (i, line),}, 
+                        table_text
+                    )
+                )
+            );
+            col_count += 1;
+            next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
+        }
+        tokens.push(Token::new_single(TokenType::TableRowEnd as usize, i, String::from("|"), String::from("</tr>\n")));
+        line += 1;
+        i += 1;
+        next_c = match text.get(i..=i) { Some(val) => val, None => return (i, line),};
+    }
+    tokens.push(Token::new_single(TokenType::TableEnd as usize, i, String::from("|"), String::from("</table>\n")));
+
+    (i, line)
+}

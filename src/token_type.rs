@@ -78,6 +78,12 @@ pub enum TokenType {
     FormatBlockText,
     FormatBlockEnd,
     Comment,
+    TableBegin,
+    TableEnd,
+    TableRowBegin,
+    TableRowEnd,
+    TableHeading,
+    TableData,
 }
 
 impl Clone for TokenType {
