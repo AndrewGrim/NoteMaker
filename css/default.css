@@ -647,7 +647,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 .markdown-body ol,
 .markdown-body ul {
-	padding-left: 0em;
+	padding-left: 2em;
 }
 
 .markdown-body ol ol,
